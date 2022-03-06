@@ -23,3 +23,19 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.get('/', async () => {
   return { hello: 'world' }
 })
+
+// Route.resource('/personas', 'PersonasController').apiOnly()
+
+Route.resource('/usuarios', 'UsuariosController').apiOnly()
+Route.post('/login', 'UsuariosController.login')
+Route.post('/logout', 'UsuariosController.logout')
+
+Route.get('dashboard', async ({ auth }) => {
+  await auth.use('web').authenticate()
+  console.log(auth.use('web').user!)
+  return {hello:'hola'}
+})
+
+Route.get('inicia_sesion', async () => {
+  return {hello:'conectateeee'}
+})

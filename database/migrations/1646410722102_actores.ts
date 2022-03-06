@@ -12,8 +12,8 @@ export default class Actores extends BaseSchema {
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
        */
-      table.timestamp('created_at', { precision: 6 })
-      table.timestamp('updated_at', { precision: 6 })
+      table.timestamp('created_at', { precision: 6 }).nullable()
+      table.timestamp('updated_at', { precision: 6 }).nullable()
     })
   }
 
