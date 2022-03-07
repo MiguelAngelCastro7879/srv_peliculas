@@ -35,7 +35,8 @@ export default class UsuarioValidator {
         sanitize: true,
         ignoreMaxLength: true,
         domainSpecificValidation: true,
-      })
+      }),
+      rules.unique({ table: 'usuarios', column: 'email' })
     ]),
     password: schema.string({}, [
       rules.confirmed('password_confirmation')

@@ -3,6 +3,7 @@ import Persona from 'App/Models/Persona';
 import Usuario from 'App/Models/Usuario';
 import Hash from '@ioc:Adonis/Core/Hash'
 import UsuarioValidator from 'App/Validators/UsuarioValidator';
+import { Exception } from '@adonisjs/core/build/standalone';
 
 export default class UsuariosController {
   public async index({response}: HttpContextContract) {
@@ -18,37 +19,38 @@ export default class UsuariosController {
     const validacion = new UsuarioValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.newSchema,});
-      const correoExist = await Usuario.findByOrFail('email',payload.email)
-      try{
-        response.conflict({
-          error:'Ya existe un usario con este correo electronico'
-        })
-      }catch{
-        const persona = await Persona.create({
-          nombre: payload.nombre,
-          f_nacimiento: payload.f_nacimiento.toSQL(),
-          nacionalidad: payload.nacionalidad
-        })
-        const user = await Usuario.create({
-          username:payload.username,
-          email:payload.email,
-          activated:true,
-          password:await Hash.make(payload.password),
-          persona_id:persona.id
-        })
-        response.ok({
-          usuario:{
-            'nombre':persona.nombre,
-            'username':user.username,
-            'email':user.email,
-            'f_nacimiento':persona.f_nacimiento,
-            'nacionalidad':persona.nacionalidad
-          },
-          mensaje:'Usuario creado correctamente'
-        })
+      const persona = await Persona.create({
+        nombre: payload.nombre,
+        f_nacimiento: payload.f_nacimiento.toSQL(),
+        nacionalidad: payload.nacionalidad
+      })
+      const user = await Usuario.create({
+        username:payload.username,
+        email:payload.email,
+        activated:true,
+        password:await Hash.make(payload.password),
+        //persona_id:persona.id
+      })
+      response.ok({
+        usuario:{
+          'nombre':persona.nombre,
+          'f_nacimiento':persona.f_nacimiento,
+          'nacionalidad':persona.nacionalidad,
+          'username':user.username,
+          'email':user.email,
+        },
+        mensaje:'Usuario creado correctamente'
+      })
+    } catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          response.badRequest({error: "Ha habido un error de validacion"})
+          case 'ER_TRUNCATED_WRONG_VALUE':
+            response.badRequest({error: "El usua"})
+          
+        default:
+          response.badRequest({error: e.code })
       }
-    } catch (payload) {
-      response.badRequest(payload.messages)
     }
   }
 
@@ -90,7 +92,7 @@ export default class UsuariosController {
       }
     } catch (payload) {
       response.badRequest(payload.messages)
-    }
+    } 
   }
 
   public async destroy({request, response}: HttpContextContract) {
