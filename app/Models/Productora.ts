@@ -5,9 +5,25 @@ export default class Productora extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
-  @column.dateTime({ autoCreate: true })
+  @column()
+  public nombre: string
+
+  @column()
+  public presidente: string
+
+  @column()
+  public propietario: string
+
+  @column()
+  public sitio_web: string
+
+  @column.dateTime({
+    serializeAs: null,
+    autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    serializeAs: null,
+    autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 }

@@ -1,27 +1,45 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
-import Encryption from '@ioc:Adonis/Core/Encryption'
+import { BaseModel, belongsTo, BelongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import Persona from './Persona'
 
 export default class Usuario extends BaseModel {
+
   @column({ isPrimary: true })
   public id: number
+
   @column()
   public username:string
+
   @column()
   public email:string
+
   @column({
     serializeAs: null,
-    // prepare: (value: string) => Encryption.encrypt(value),
-    // consume: (value: string) => Encryption.decrypt(value),
    })
   public password:string
+
   @column()
   public activated:boolean
-  @column()
+
+  @column({
+    serializeAs: null,
+    })
   public persona_id:number
-  @column.dateTime({ autoCreate: true })
+
+  @column.dateTime({
+    serializeAs: null,
+    autoCreate: true })
   public createdAt: DateTime
 
-  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  @column.dateTime({
+    serializeAs: null,
+    autoCreate: true,
+    autoUpdate: true })
   public updatedAt: DateTime
+
+  @belongsTo(() => Persona, {
+    localKey:'id',
+    foreignKey:'persona_id'
+  })
+  public persona: BelongsTo<typeof Persona>
 }

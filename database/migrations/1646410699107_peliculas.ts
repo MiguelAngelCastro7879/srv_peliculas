@@ -9,6 +9,7 @@ export default class Peliculas extends BaseSchema {
       table.string('nombre')
       table.text('descripcion')
       table.float('duracion')
+      table.integer('calificacion')
       table.integer('clasificacion_id').unsigned().references('id').inTable('clasificaciones')
       table.integer('categoria_id').unsigned().references('id').inTable('categorias')
       /**

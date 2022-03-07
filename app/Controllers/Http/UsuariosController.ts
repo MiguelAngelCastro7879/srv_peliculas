@@ -1,34 +1,23 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import Persona from 'App/Models/Persona';
 import Usuario from 'App/Models/Usuario';
 import Hash from '@ioc:Adonis/Core/Hash'
+import UsuarioValidator from 'App/Validators/UsuarioValidator';
 
 export default class UsuariosController {
-  public async index({}: HttpContextContract) {}
+  public async index({response}: HttpContextContract) {
+    const personas = await Persona.query().whereHas('usuario',(query)=>{
+      query.where('activated', true)
+    }).preload('usuario')
+    response.status(200).send({
+      'users':personas
+    })
+  }
 
-  public async store({request, response}: HttpContextContract) {
-    const newSchema = schema.create({
-      nombre: schema.string({trim:true}),
-      f_nacimiento: schema.date({
-        format: 'sql',
-      }),
-      nacionalidad: schema.string({}),
-      username: schema.string({}),
-      email: schema.string({}, [
-        rules.email({
-          sanitize: true,
-          ignoreMaxLength: true,
-          domainSpecificValidation: true,
-        })
-      ]),
-      activated: schema.boolean(),
-      password: schema.string({}, [
-        rules.confirmed('password_confirmation')
-      ]),
-    });
+  public async store({request, response}: HttpContextContract,ctx: HttpContextContract) {
+    const validacion = new UsuarioValidator(ctx)
     try {
-      const payload = await request.validate({schema: newSchema,});
+      const payload = await request.validate({schema: validacion.newSchema,});
       const persona = await Persona.create({
         nombre: payload.nombre,
         f_nacimiento: payload.f_nacimiento.toSQL(),
@@ -37,16 +26,18 @@ export default class UsuariosController {
       const user = await Usuario.create({
         username:payload.username,
         email:payload.email,
-        activated:payload.activated,
+        activated:true,
         password:await Hash.make(payload.password),
         persona_id:persona.id
       })
       response.status(201)
       response.send({
-        'Usuario':{
+        'usuario':{
           'nombre':persona.nombre,
           'username':user.username,
-          'email':user.email
+          'email':user.email,
+          'f_nacimiento':persona.f_nacimiento,
+          'nacionalidad':persona.nacionalidad
         },
         'mensaje':'Usuario creado correctamente'
       })
@@ -55,30 +46,107 @@ export default class UsuariosController {
     }
   }
 
+  public async show({response, params}: HttpContextContract) {
+    try{
+      const persona = await Persona.query().whereHas('usuario',(query)=>{
+        query.where('id', params.id)
+      }).preload('usuario').firstOrFail()
+      response.status(200).send({
+        'usuario':persona
+      })
+    }catch(user){
+      response.notFound({error:'Usuario no encontrado'})
+    }
+  }
+
+  public async update({request, response}: HttpContextContract, ctx:HttpContextContract) {
+    const validacion = new UsuarioValidator(ctx)
+    try {
+      const payload = await request.validate({schema: validacion.newSchema,});
+      try {
+        const persona1 = await Persona.query().whereHas('usuario',(query)=>{
+          query.where('id', request.params().id)
+        }).preload('usuario').firstOrFail()
+        persona1.usuario.email = payload.email
+        persona1.usuario.username = payload.username
+        persona1.usuario.password = payload.password
+        persona1.nombre = payload.nombre
+        persona1.f_nacimiento = payload.f_nacimiento.toSQL()
+        persona1.nacionalidad= payload.nacionalidad
+        persona1.usuario.save()
+        persona1.save()
+        response.status(201).send({
+          'usuario':persona1,
+          'mensaje':'Usuario actualizado correctamente'
+        })
+      } catch (E_ROW_NOT_FOUND) {
+        response.notFound({error:'Usuario no encontrado'})
+      }
+    } catch (payload) {
+      response.badRequest(payload.messages)
+    }
+  }
+  public async destroy({request, response}: HttpContextContract) {
+    try{
+      const usuario = await (await Usuario.findOrFail(request.params().id)).delete()
+      response.status(200).send({
+        usuario:usuario,
+        mensaje:'Usuario eliminado'
+      })
+    }catch(E_ROW_NOT_FOUND){
+      response.notFound({error:'Usuario no encontrado'})
+    }
+  }
+
   public async login({auth, request, response}: HttpContextContract) {
     const email = request.input('email')
     const password = request.input('password')
-
-    const user = await Usuario
-    .query()
-    .where('email', email)
-    .firstOrFail()
-
-    if (!(await Hash.verify(user.password, password))) {
-      return response.badRequest('Invalid credentials')
+    try {
+      const user = await Usuario.findByOrFail('email', email)
+      if(user.activated == true){
+        try {
+          await auth.use('web').attempt(email, password)
+          response.status(200).send({
+            mensaje:'sesion iniciada'
+          })
+        } catch (E_INVALID_AUTH_PASSWORD) {
+          response.badRequest({error:'Contraseña invalida'})
+        }
+      }
+      else{
+        response.notFound({error:'Usuario no encontrado'})
+      }
+    } catch (E_ROW_NOT_FOUND) {
+      response.notFound({error:'Usuario no encontrado'})
     }
-    await auth.use('web').login(user)
-    response.redirect('/dashboard')
   }
 
   public async logout({auth, response}: HttpContextContract){
-    await auth.use('web').logout()
-    response.redirect('/inicia_sesion')
+    try{
+      const sesion = await auth.use('web').authenticate()
+      await auth.use('web').logout()
+      response.status(201)
+      response.send({
+        mensaje:'Sesion terminada'
+      })
+    }catch{
+      response.badRequest({error: 'No hay sesiones activas'})
+    }
   }
 
-  public async show({}: HttpContextContract) {}
-
-  public async update({}: HttpContextContract) {}
-
-  public async destroy({}: HttpContextContract) {}
+  public async statusCuenta({request, response}: HttpContextContract){
+    try {
+      const user = await Usuario.findByOrFail('email',request.input('email'))
+      user.activated = !user.activated
+      user.save()
+      if(user.activated){
+        response.ok({mensaje:'Cuenta activada'})
+      }
+      else{
+        response.ok({mensaje:'Cuenta desactivada'})
+      }
+    } catch (E_ROW_NOT_FOUND) {
+        response.notFound({error:'Usuario no encontrado'})
+    }
+  }
 }

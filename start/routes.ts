@@ -27,13 +27,26 @@ Route.get('/', async () => {
 // Route.resource('/personas', 'PersonasController').apiOnly()
 
 Route.resource('/usuarios', 'UsuariosController').apiOnly()
+Route.resource('/categorias', 'CategoriasController').apiOnly()
+Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
+Route.resource('/idiomas', 'IdiomasController').apiOnly()
+Route.resource('/peliculas', 'PeliculasController').apiOnly()
+Route.resource('/productoras', 'ProductorasController').apiOnly()
+
+
 Route.post('/login', 'UsuariosController.login')
 Route.post('/logout', 'UsuariosController.logout')
+Route.post('/status', 'UsuariosController.statusCuenta')
 
-Route.get('dashboard', async ({ auth }) => {
-  await auth.use('web').authenticate()
-  console.log(auth.use('web').user!)
-  return {hello:'hola'}
+Route.get('dashboard', async ({ auth, response }) => {
+  try {
+    const sesion = await auth.use('web').authenticate()
+    response.status(200).send({ususario:sesion})
+  } catch (E_INVALID_AUTH_SESSION) {
+    response.badRequest({error: 'No se ha iniciado sesion'})
+  }
+
+// }).middleware('auth:web')
 })
 
 Route.get('inicia_sesion', async () => {
