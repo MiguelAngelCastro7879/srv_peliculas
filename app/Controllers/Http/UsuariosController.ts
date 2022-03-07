@@ -9,7 +9,7 @@ export default class UsuariosController {
     const personas = await Persona.query().whereHas('usuario',(query)=>{
       query.where('activated', true)
     }).preload('usuario')
-    response.status(200).send({
+    response.ok({
       'users':personas
     })
   }
@@ -30,8 +30,7 @@ export default class UsuariosController {
         password:await Hash.make(payload.password),
         persona_id:persona.id
       })
-      response.status(201)
-      response.send({
+      response.ok({
         'usuario':{
           'nombre':persona.nombre,
           'username':user.username,
@@ -51,7 +50,7 @@ export default class UsuariosController {
       const persona = await Persona.query().whereHas('usuario',(query)=>{
         query.where('id', params.id)
       }).preload('usuario').firstOrFail()
-      response.status(200).send({
+      response.ok({
         'usuario':persona
       })
     }catch(user){
@@ -75,7 +74,7 @@ export default class UsuariosController {
         persona1.nacionalidad= payload.nacionalidad
         persona1.usuario.save()
         persona1.save()
-        response.status(201).send({
+        response.ok({
           'usuario':persona1,
           'mensaje':'Usuario actualizado correctamente'
         })
@@ -89,7 +88,7 @@ export default class UsuariosController {
   public async destroy({request, response}: HttpContextContract) {
     try{
       const usuario = await (await Usuario.findOrFail(request.params().id)).delete()
-      response.status(200).send({
+      response.ok({
         usuario:usuario,
         mensaje:'Usuario eliminado'
       })
@@ -106,7 +105,7 @@ export default class UsuariosController {
       if(user.activated == true){
         try {
           await auth.use('web').attempt(email, password)
-          response.status(200).send({
+          response.ok({
             mensaje:'sesion iniciada'
           })
         } catch (E_INVALID_AUTH_PASSWORD) {
@@ -125,8 +124,7 @@ export default class UsuariosController {
     try{
       const sesion = await auth.use('web').authenticate()
       await auth.use('web').logout()
-      response.status(201)
-      response.send({
+      response.ok({
         mensaje:'Sesion terminada'
       })
     }catch{
@@ -134,7 +132,7 @@ export default class UsuariosController {
     }
   }
 
-  public async statusCuenta({request, response}: HttpContextContract){
+  public async statusCuenta({request, response}: HttpContextContract, ctx:HttpContextContract){
     try {
       const user = await Usuario.findByOrFail('email',request.input('email'))
       user.activated = !user.activated
