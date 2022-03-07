@@ -18,12 +18,12 @@ export default class UsuariosController {
     const validacion = new UsuarioValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.newSchema,});
-      const correoExist = await Usuario.findByOrFail('email',payload.email)
       try{
+        const correoExist = await Usuario.findByOrFail('email',payload.email)
         response.conflict({
           error:'Ya existe un usario con este correo electronico'
         })
-      }catch{
+      }catch(E_ROW_NOT_FOUND){
         const persona = await Persona.create({
           nombre: payload.nombre,
           f_nacimiento: payload.f_nacimiento.toSQL(),

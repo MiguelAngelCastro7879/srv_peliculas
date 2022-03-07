@@ -6,11 +6,11 @@ export default class Persona extends BaseModel {
   @column({ isPrimary: true })
   public id: number
   @column()
-  public nombre: string
+  public nombre: string;
   @column()
-  public f_nacimiento:string
+  public f_nacimiento:string;
   @column()
-  public nacionalidad:string
+  public nacionalidad:string;
 
   @column.dateTime({
     serializeAs: null,
