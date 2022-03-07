@@ -1,7 +1,7 @@
+import { schema } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
-export default class UsuarioValidator {
+export default class ProductoraValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   /*
@@ -23,23 +23,11 @@ export default class UsuarioValidator {
    *     ])
    *    ```
    */
-  public newSchema = schema.create({
+  public schema = schema.create({
     nombre: schema.string({trim:true}),
-    f_nacimiento: schema.date({
-      format: 'sql',
-    }),
-    nacionalidad: schema.string(),
-    username: schema.string(),
-    email: schema.string({}, [
-      rules.email({
-        sanitize: true,
-        ignoreMaxLength: true,
-        domainSpecificValidation: true,
-      })
-    ]),
-    password: schema.string({}, [
-      rules.confirmed('password_confirmation')
-    ]),
+    presidente: schema.string({trim:true}),
+    propietario: schema.string({trim:true}),
+    sitio_web: schema.string({trim:true}),
   });
 
   /**

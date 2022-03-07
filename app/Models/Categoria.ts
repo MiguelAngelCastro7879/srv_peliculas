@@ -5,6 +5,12 @@ export default class Categoria extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
+  @column()
+  public nombre: string
+
+  @column()
+  public edad_minima: number
+
   @column.dateTime({
     serializeAs: null,
     autoCreate: true })

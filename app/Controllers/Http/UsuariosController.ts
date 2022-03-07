@@ -60,7 +60,7 @@ export default class UsuariosController {
       response.ok({
         usuario:persona
       })
-    }catch(user){
+    }catch(E_ROW_NOT_FOUND){
       response.notFound({error:'Usuario no encontrado'})
     }
   }

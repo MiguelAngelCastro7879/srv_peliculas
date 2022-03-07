@@ -1,5 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, belongsTo, BelongsTo, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
+import Pelicula from './Pelicula'
+
 
 export default class Productora extends BaseModel {
   @column({ isPrimary: true })
@@ -26,4 +28,13 @@ export default class Productora extends BaseModel {
     serializeAs: null,
     autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @manyToMany(() => Pelicula, {
+    pivotTable: 'peliculas_productoras',
+    pivotRelatedForeignKey: 'pelicula_id',// pelicula_id column on "Pelicula" model
+    pivotForeignKey: 'productora_id',// Productora_id column on "peliculas_Productora" model
+    relatedKey: 'id', // id column on "Pelicula" model
+    localKey: 'id', // id column on "Productora" model
+  })
+  public peliculas: ManyToMany<typeof Pelicula>
 }
