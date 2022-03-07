@@ -18,28 +18,35 @@ export default class UsuariosController {
     const validacion = new UsuarioValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.newSchema,});
-      const persona = await Persona.create({
-        nombre: payload.nombre,
-        f_nacimiento: payload.f_nacimiento.toSQL(),
-        nacionalidad: payload.nacionalidad
-      })
-      const user = await Usuario.create({
-        username:payload.username,
-        email:payload.email,
-        activated:true,
-        password:await Hash.make(payload.password),
-        persona_id:persona.id
-      })
-      response.ok({
-        'usuario':{
-          'nombre':persona.nombre,
-          'username':user.username,
-          'email':user.email,
-          'f_nacimiento':persona.f_nacimiento,
-          'nacionalidad':persona.nacionalidad
-        },
-        'mensaje':'Usuario creado correctamente'
-      })
+      const correoExist = await Usuario.findByOrFail('email',payload.email)
+      try{
+        response.conflict({
+          error:'Ya existe un usario con este correo electronico'
+        })
+      }catch{
+        const persona = await Persona.create({
+          nombre: payload.nombre,
+          f_nacimiento: payload.f_nacimiento.toSQL(),
+          nacionalidad: payload.nacionalidad
+        })
+        const user = await Usuario.create({
+          username:payload.username,
+          email:payload.email,
+          activated:true,
+          password:await Hash.make(payload.password),
+          persona_id:persona.id
+        })
+        response.ok({
+          usuario:{
+            'nombre':persona.nombre,
+            'username':user.username,
+            'email':user.email,
+            'f_nacimiento':persona.f_nacimiento,
+            'nacionalidad':persona.nacionalidad
+          },
+          mensaje:'Usuario creado correctamente'
+        })
+      }
     } catch (payload) {
       response.badRequest(payload.messages)
     }
@@ -51,7 +58,7 @@ export default class UsuariosController {
         query.where('id', params.id)
       }).preload('usuario').firstOrFail()
       response.ok({
-        'usuario':persona
+        usuario:persona
       })
     }catch(user){
       response.notFound({error:'Usuario no encontrado'})
@@ -75,8 +82,8 @@ export default class UsuariosController {
         persona1.usuario.save()
         persona1.save()
         response.ok({
-          'usuario':persona1,
-          'mensaje':'Usuario actualizado correctamente'
+          usuario:persona1,
+          mensaje:'Usuario actualizado correctamente'
         })
       } catch (E_ROW_NOT_FOUND) {
         response.notFound({error:'Usuario no encontrado'})
@@ -85,6 +92,7 @@ export default class UsuariosController {
       response.badRequest(payload.messages)
     }
   }
+
   public async destroy({request, response}: HttpContextContract) {
     try{
       const usuario = await (await Usuario.findOrFail(request.params().id)).delete()
@@ -122,17 +130,17 @@ export default class UsuariosController {
 
   public async logout({auth, response}: HttpContextContract){
     try{
-      const sesion = await auth.use('web').authenticate()
+      await auth.use('web').authenticate()
       await auth.use('web').logout()
       response.ok({
         mensaje:'Sesion terminada'
       })
-    }catch{
+    }catch(E_INVALID_AUTH_SESSIO){
       response.badRequest({error: 'No hay sesiones activas'})
     }
   }
 
-  public async statusCuenta({request, response}: HttpContextContract, ctx:HttpContextContract){
+  public async statusCuenta({request, response}: HttpContextContract){
     try {
       const user = await Usuario.findByOrFail('email',request.input('email'))
       user.activated = !user.activated
