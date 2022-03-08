@@ -3,14 +3,13 @@ import Persona from 'App/Models/Persona';
 import Usuario from 'App/Models/Usuario';
 import Hash from '@ioc:Adonis/Core/Hash'
 import UsuarioValidator from 'App/Validators/UsuarioValidator';
-import { Exception } from '@adonisjs/core/build/standalone';
 
 export default class UsuariosController {
   public async index({response}: HttpContextContract) {
     const personas = await Persona.query().whereHas('usuario',(query)=>{
       query.where('activated', true)
     }).preload('usuario')
-    response.ok({
+    return response.ok({
       'users':personas
     })
   }
@@ -31,7 +30,7 @@ export default class UsuariosController {
         password:await Hash.make(payload.password),
         //persona_id:persona.id
       })
-      response.ok({
+      return response.ok({
         usuario:{
           'nombre':persona.nombre,
           'f_nacimiento':persona.f_nacimiento,
@@ -44,12 +43,9 @@ export default class UsuariosController {
     } catch (e) {
       switch(e.code){
         case 'E_VALIDATION_FAILURE':
-          response.badRequest({error: "Ha habido un error de validacion"})
-          case 'ER_TRUNCATED_WRONG_VALUE':
-            response.badRequest({error: "El usua"})
-          
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
         default:
-          response.badRequest({error: e.code })
+          return response.badRequest({error: e.code })
       }
     }
   }
@@ -59,11 +55,16 @@ export default class UsuariosController {
       const persona = await Persona.query().whereHas('usuario',(query)=>{
         query.where('id', params.id)
       }).preload('usuario').firstOrFail()
-      response.ok({
+      return response.ok({
         usuario:persona
       })
-    }catch(E_ROW_NOT_FOUND){
-      response.notFound({error:'Usuario no encontrado'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
@@ -71,39 +72,47 @@ export default class UsuariosController {
     const validacion = new UsuarioValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.newSchema,});
-      try {
-        const persona1 = await Persona.query().whereHas('usuario',(query)=>{
-          query.where('id', request.params().id)
-        }).preload('usuario').firstOrFail()
-        persona1.usuario.email = payload.email
-        persona1.usuario.username = payload.username
-        persona1.usuario.password = payload.password
-        persona1.nombre = payload.nombre
-        persona1.f_nacimiento = payload.f_nacimiento.toSQL()
-        persona1.nacionalidad= payload.nacionalidad
-        persona1.usuario.save()
-        persona1.save()
-        response.ok({
-          usuario:persona1,
-          mensaje:'Usuario actualizado correctamente'
-        })
-      } catch (E_ROW_NOT_FOUND) {
-        response.notFound({error:'Usuario no encontrado'})
+      const persona1 = await Persona.query().whereHas('usuario',(query)=>{
+        query.where('id', request.params().id)
+      }).preload('usuario').firstOrFail()
+      persona1.usuario.email = payload.email
+      persona1.usuario.username = payload.username
+      persona1.usuario.password = payload.password
+      persona1.nombre = payload.nombre
+      persona1.f_nacimiento = payload.f_nacimiento.toSQL()
+      persona1.nacionalidad= payload.nacionalidad
+      persona1.usuario.save()
+      persona1.save()
+      return response.ok({
+        usuario:persona1,
+        mensaje:'Usuario actualizado correctamente'
+      })
+    } catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
       }
-    } catch (payload) {
-      response.badRequest(payload.messages)
-    } 
+    }
   }
 
   public async destroy({request, response}: HttpContextContract) {
     try{
       const usuario = await (await Usuario.findOrFail(request.params().id)).delete()
-      response.ok({
+      return response.ok({
         usuario:usuario,
         mensaje:'Usuario eliminado'
       })
-    }catch(E_ROW_NOT_FOUND){
-      response.notFound({error:'Usuario no encontrado'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
@@ -113,20 +122,21 @@ export default class UsuariosController {
     try {
       const user = await Usuario.findByOrFail('email', email)
       if(user.activated == true){
-        try {
-          await auth.use('web').attempt(email, password)
-          response.ok({
-            mensaje:'sesion iniciada'
-          })
-        } catch (E_INVALID_AUTH_PASSWORD) {
-          response.badRequest({error:'Contraseña invalida'})
-        }
+        await auth.use('web').attempt(email, password)
+        return response.ok({
+          mensaje:'sesion iniciada'
+        })
       }
       else{
-        response.notFound({error:'Usuario no encontrado'})
+        return response.notFound({error:'Usuario no encontrado'})
       }
-    } catch (E_ROW_NOT_FOUND) {
-      response.notFound({error:'Usuario no encontrado'})
+    } catch (e) {
+      switch(e.code){
+        case 'E_INVALID_AUTH_PASSWORD':
+          return response.badRequest({error:'Contraseña invalida'})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
@@ -134,11 +144,11 @@ export default class UsuariosController {
     try{
       await auth.use('web').authenticate()
       await auth.use('web').logout()
-      response.ok({
+      return response.ok({
         mensaje:'Sesion terminada'
       })
     }catch(E_INVALID_AUTH_SESSIO){
-      response.badRequest({error: 'No hay sesiones activas'})
+      return response.badRequest({error: 'No hay sesiones activas'})
     }
   }
 
@@ -148,13 +158,18 @@ export default class UsuariosController {
       user.activated = !user.activated
       user.save()
       if(user.activated){
-        response.ok({mensaje:'Cuenta activada'})
+        return response.ok({mensaje:'Cuenta activada'})
       }
       else{
-        response.ok({mensaje:'Cuenta desactivada'})
+        return response.ok({mensaje:'Cuenta desactivada'})
       }
-    } catch (E_ROW_NOT_FOUND) {
-        response.notFound({error:'Usuario no encontrado'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 }

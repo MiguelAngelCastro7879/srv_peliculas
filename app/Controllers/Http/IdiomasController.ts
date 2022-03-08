@@ -5,7 +5,7 @@ import IdiomaValidator from 'App/Validators/IdiomaValidator';
 export default class IdiomasController {
   public async index({response}: HttpContextContract) {
     const idiomas = await Idioma.all()
-    response.ok({
+    return response.ok({
       idiomas:idiomas
     })
   }
@@ -15,23 +15,33 @@ export default class IdiomasController {
     try {
       const payload = await request.validate({schema: validacion.schema});
       const idioma = await Idioma.create(payload)
-      response.ok({
+      return response.ok({
         idioma:idioma,
         mensaje:'Idioma creado correctamente'
       })
-    } catch (payload) {
-      response.badRequest(payload.messages)
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
   public async show({response, request}: HttpContextContract) {
     try {
       const idioma = await Idioma.findOrFail(request.params().id)
-      response.ok({
+      return response.ok({
         idioma:idioma
       })
-    } catch (error) {
-      response.notFound({error:'idioma no encontrada'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Idioma no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
@@ -39,19 +49,22 @@ export default class IdiomasController {
     const validacion = new IdiomaValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.schema,});
-      try {
-        const idioma = await Idioma.findOrFail(request.params().id)
-        idioma.nombre=payload.nombre
-        idioma.save()
-        response.ok({
-          idioma:idioma,
-          mensaje:'Idioma actualizado correctamente'
-        })
-      } catch (E_ROW_NOT_FOUND) {
-        response.notFound({error:'idioma no encontrado'})
+      const idioma = await Idioma.findOrFail(request.params().id)
+      idioma.nombre=payload.nombre
+      idioma.save()
+      return response.ok({
+        idioma:idioma,
+        mensaje:'Idioma actualizado correctamente'
+      })
+    } catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Idioma no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
       }
-    } catch (payload) {
-      response.badRequest(payload.messages)
     }
   }
 
@@ -59,12 +72,17 @@ export default class IdiomasController {
     try {
       const idioma = await Idioma.findOrFail(request.params().id)
       idioma.delete()
-      response.ok({
+      return response.ok({
         idioma:idioma,
         mensaje:'Idioma eliminado correctamente'
       })
-    } catch (E_ROW_NOT_FOUND) {
-      response.notFound({error:'Idioma no encontrado'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Idioma no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 }

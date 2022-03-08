@@ -5,7 +5,7 @@ import CategoriaValidator from 'App/Validators/CategoriaValidator';
 export default class CategoriasController {
   public async index({response}: HttpContextContract) {
     const categorias = await Categoria.all()
-    response.ok({
+    return response.ok({
       categorias:categorias
     })
   }
@@ -15,23 +15,33 @@ export default class CategoriasController {
     try {
       const payload = await request.validate({schema: validacion.schema});
       const categoria = await Categoria.create(payload)
-      response.ok({
+      return response.ok({
         categoria:categoria,
         mensaje:'Categoria creada correctamente'
       })
-    } catch (payload) {
-      response.badRequest(payload.messages)
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
   public async show({response, request}: HttpContextContract) {
     try {
       const categoria = await Categoria.findOrFail(request.params().id)
-      response.ok({
+      return response.ok({
         categoria:categoria
       })
-    } catch (error) {
-      response.notFound({error:'Categoria no encontrada'})
+    } catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Categoria no encontrada"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
@@ -39,19 +49,22 @@ export default class CategoriasController {
     const validacion = new CategoriaValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.schema,});
-      try {
-        const categoria = await Categoria.findOrFail(request.params().id)
-        categoria.nombre=payload.nombre
-        categoria.save()
-        response.ok({
-          categoria:categoria,
-          mensaje:'Categoria actualizada correctamente'
-        })
-      } catch (E_ROW_NOT_FOUND) {
-        response.notFound({error:'Categoria no encontrada'})
+      const categoria = await Categoria.findOrFail(request.params().id)
+      categoria.nombre=payload.nombre
+      categoria.save()
+      return response.ok({
+        categoria:categoria,
+        mensaje:'Categoria actualizada correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Categoria no encontrada"})
+        default:
+          return response.badRequest({error: e.code })
       }
-    } catch (payload) {
-      response.badRequest(payload.messages)
     }
   }
 
@@ -59,12 +72,17 @@ export default class CategoriasController {
     try {
       const categoria = await Categoria.findOrFail(request.params().id)
       categoria.delete()
-      response.ok({
+      return response.ok({
         categoria:categoria,
         mensaje:'Categoria eliminada correctamente'
       })
-    } catch (E_ROW_NOT_FOUND) {
-      response.notFound({error:'Categoria no encontrada'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Categoria no encontrada"})
+        default:
+          return response.badRequest({error: e.code })
+      }
     }
   }
 }
