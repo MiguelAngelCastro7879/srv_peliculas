@@ -2,11 +2,17 @@ import { DateTime } from 'luxon'
 import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
 
 export default class Clasificacion extends BaseModel {
+
+  public static table = 'clasificaciones'
+
   @column({ isPrimary: true })
   public id: number
 
   @column()
   public nombre: string
+
+  @column()
+  public descripcion: string
 
   @column()
   public edad_minima: number

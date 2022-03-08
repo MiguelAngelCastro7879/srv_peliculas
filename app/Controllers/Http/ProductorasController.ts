@@ -14,12 +14,7 @@ export default class ProductorasController {
     const validacion = new ProductoraValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.schema,});
-      const productora = await Productora.create({
-        nombre:payload.nombre,
-        presidente:payload.presidente,
-        propietario:payload.propietario,
-        sitio_web:payload.sitio_web,
-      })
+      const productora = await Productora.create(payload)
       return response.ok({
         productora:productora,
         mensaje:'Productora creada correctamente'

@@ -28,7 +28,7 @@ export default class UsuariosController {
         email:payload.email,
         activated:true,
         password:await Hash.make(payload.password),
-        //persona_id:persona.id
+        persona_id:persona.id
       })
       return response.ok({
         usuario:{

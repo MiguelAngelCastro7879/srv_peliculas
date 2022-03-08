@@ -9,6 +9,24 @@ export default class Pelicula extends BaseModel {
   @column({ isPrimary: true })
   public id: number
 
+  @column()
+  public nombre: string
+
+  @column()
+  public descripcion: string
+
+  @column()
+  public duracion: number
+
+  @column()
+  public calificacion: number
+
+  @column()
+  public categoria_id: number
+
+  @column()
+  public clasificacion_id: number
+
   @column.dateTime({
     serializeAs: null,
     autoCreate: true })
@@ -19,10 +37,16 @@ export default class Pelicula extends BaseModel {
     autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @belongsTo(() => Categoria)
+  @belongsTo(() => Categoria, {
+    localKey: 'id', // id column on "Categoria" model
+    foreignKey: 'categoria_id', // userId column on "Pelicula" model
+  })
   public categoria: BelongsTo<typeof Categoria>
 
-  @belongsTo(() => Clasificacion)
+  @belongsTo(() => Clasificacion, {
+    localKey: 'id', // id column on "clasificacion" model
+    foreignKey: 'clasificacion_id', // userId column on "Pelicula" model
+  })
   public clasificacion: BelongsTo<typeof Clasificacion>
 
   @manyToMany(() => Idioma, {
