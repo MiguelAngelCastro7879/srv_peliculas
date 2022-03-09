@@ -1,12 +1,19 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Papel from 'App/Models/Papel';
 import Pelicula from 'App/Models/Pelicula';
+import PapelValidator from 'App/Validators/PapelValidator';
 import PeliculaValidator from 'App/Validators/PeliculaValidator';
 
 export default class PeliculasController {
   public async index({response}: HttpContextContract) {
     const peliculas = await Pelicula.query().
     has('categoria').preload('categoria').
-    has('clasificacion').preload('clasificacion')
+    has('clasificacion').preload('clasificacion').
+    preload('papeles',(query)=>{
+      query.preload('actor',(subquery)=>{
+        subquery.preload('persona')
+      })
+    })
     return response.ok({
       peliculas:peliculas
     })
@@ -93,6 +100,42 @@ export default class PeliculasController {
       switch(e.code){
         case 'E_ROW_NOT_FOUND':
           return response.badRequest({error: "Pelicula no encontrada"})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+
+  public async agregarActor({response , request}: HttpContextContract, ctx: HttpContextContract) {
+    const validacion = new PapelValidator(ctx)
+    try {
+      const payload = await request.validate({schema: validacion.schema,});
+      const p = await Pelicula.findOrFail(request.params().id)
+      await Papel.create({
+        actor_id:payload.actor_id,
+        papel:payload.papel,
+        pelicula_id:p.id
+      })
+      const pelicula = await Pelicula.query().
+      has('categoria').preload('categoria').
+      has('clasificacion').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).where('id', p.id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Clasificacion actualizada correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Pelicula no encontrada", mensajes:e.messages})
         default:
           return response.badRequest({error: e.code })
       }

@@ -30,8 +30,12 @@ Route.resource('/usuarios', 'UsuariosController').apiOnly()
 Route.resource('/categorias', 'CategoriasController').apiOnly()
 Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
 Route.resource('/idiomas', 'IdiomasController').apiOnly()
+
 Route.resource('/peliculas', 'PeliculasController').apiOnly()
+Route.post('/peliculas/:id/agregar_actor', 'PeliculasController.agregarActor')
+
 Route.resource('/productoras', 'ProductorasController').apiOnly()
+Route.resource('/actores', 'ActoresController').apiOnly()
 
 
 Route.post('/login', 'UsuariosController.login')

@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import Usuario from './Usuario'
+import Actor from './Actor'
 
 export default class Persona extends BaseModel {
   @column({ isPrimary: true })
@@ -29,4 +30,10 @@ export default class Persona extends BaseModel {
     foreignKey:'persona_id'
   })
   public usuario: HasOne<typeof Usuario>
+
+  @hasOne(() => Actor,{
+    localKey:'id',
+    foreignKey:'persona_id'
+  })
+  public actor: HasOne<typeof Actor>
 }

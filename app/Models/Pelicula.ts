@@ -1,9 +1,10 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, BelongsTo, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, belongsTo, BelongsTo, column, HasMany, hasMany, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 import Categoria from './Categoria'
 import Clasificacion from './Clasificacion'
 import Idioma from './Idioma'
 import Productora from './Productora'
+import Papel from './Papel'
 
 export default class Pelicula extends BaseModel {
   @column({ isPrimary: true })
@@ -67,4 +68,11 @@ export default class Pelicula extends BaseModel {
     localKey: 'id', // id column on "Pelicula" model
   })
   public productora: ManyToMany<typeof Productora>
+
+
+  @hasMany(() => Papel, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public papeles: HasMany<typeof Papel>
 }
