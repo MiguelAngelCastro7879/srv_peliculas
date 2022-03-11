@@ -20,7 +20,8 @@ export default class UsuariosController {
       const payload = await request.validate({schema: validacion.newSchema,});
       const persona = await Persona.create({
         nombre: payload.nombre,
-        f_nacimiento: payload.f_nacimiento.toSQL(),
+        //f_nacimiento: payload.f_nacimiento.toString(),
+        f_nacimiento: payload.f_nacimiento.toSQLDate(),
         nacionalidad: payload.nacionalidad
       })
       const user = await Usuario.create({
@@ -80,7 +81,7 @@ export default class UsuariosController {
       persona1.usuario.username = payload.username
       persona1.usuario.password = payload.password
       persona1.nombre = payload.nombre
-      persona1.f_nacimiento = payload.f_nacimiento.toSQL()
+      persona1.f_nacimiento = payload.f_nacimiento.toSQLDate()
       persona1.nacionalidad= payload.nacionalidad
       persona1.usuario.save()
       persona1.save()

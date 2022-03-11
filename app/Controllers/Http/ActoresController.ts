@@ -17,15 +17,18 @@ export default class ActoresController {
       const payload = await request.validate({schema: validacion.newSchema,});
       const persona = await Persona.create({
         nombre: payload.nombre,
-        f_nacimiento: payload.f_nacimiento.toSQL(),
+        f_nacimiento: payload.f_nacimiento.toSQLDate(),
+        //f_nacimiento: payload.f_nacimiento.toSQL(),
         nacionalidad: payload.nacionalidad
       })
       const actor = await Actor.create({
         persona_id:persona.id,
-        inicio_carrera:payload.inicio_carrera.toSQL(),
+        inicio_carrera:payload.inicio_carrera.toSQLDate(),
+        //inicio_carrera:payload.inicio_carrera.toSQL(),
       })
       if(payload.final_carrera != null)
-        actor.final_carrera=payload.final_carrera!.toSQL(),
+      actor.final_carrera=payload.final_carrera!.toSQLDate(),
+        //actor.final_carrera=payload.final_carrera!.toSQL(),
         actor.save()
       return response.ok({
         actor:{
@@ -75,12 +78,15 @@ export default class ActoresController {
       const persona1 = await Persona.query().whereHas('actor',(query)=>{
         query.where('id', request.params().id)
       }).preload('actor').firstOrFail()
-      persona1.actor.inicio_carrera = payload.inicio_carrera.toSQL()
+      persona1.actor.inicio_carrera = payload.inicio_carrera.toSQLDate()
+      //persona1.actor.inicio_carrera = payload.inicio_carrera.toSQL()
       persona1.nombre = payload.nombre
-      persona1.f_nacimiento = payload.f_nacimiento.toSQL()
+      persona1.f_nacimiento = payload.f_nacimiento.toSQLDate()
+      //persona1.f_nacimiento = payload.f_nacimiento.toSQL()
       persona1.nacionalidad= payload.nacionalidad
       if(payload.final_carrera != null)
-        persona1.actor.final_carrera=payload.final_carrera!.toSQL()
+      persona1.actor.final_carrera=payload.final_carrera!.toSQLDate()
+        //persona1.actor.final_carrera=payload.final_carrera!.toSQL()
       persona1.actor.save()
       persona1.save()
       return response.ok({
