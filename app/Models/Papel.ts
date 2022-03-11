@@ -7,13 +7,13 @@ export default class Papel extends BaseModel {
 
   public static table = 'actores_peliculas'
 
-  @column({serializeAs: null, isPrimary: true })
+  @column({ isPrimary: true })
   public id: number
 
-  @column({serializeAs: null, isPrimary: true })
+  @column({serializeAs: null })
   public actor_id: number
 
-  @column({serializeAs: null, isPrimary: true })
+  @column({serializeAs: null })
   public pelicula_id: number
 
   @column()

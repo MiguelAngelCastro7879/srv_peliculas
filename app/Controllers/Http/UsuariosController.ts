@@ -10,7 +10,7 @@ export default class UsuariosController {
       query.where('activated', true)
     }).preload('usuario')
     return response.ok({
-      'users':personas
+      'usuarios':personas
     })
   }
 
@@ -117,65 +117,69 @@ export default class UsuariosController {
     }
   }
 
-  // public async login({auth, request, response}: HttpContextContract) {
-  //   const email = request.input('email')
-  //   const password = request.input('password')
-  //   try {
-  //     const user = await Usuario.findByOrFail('email', email)
-  //     if(user.activated == true){
-  //       await auth.use('web').attempt(email, password)
-  //       return response.ok({
-  //         mensaje:'sesion iniciada'
-  //       })
-  //     }
-  //     else{
-  //       return response.notFound({error:'Usuario no encontrado'})
-  //     }
-  //   } catch (e) {
-  //     switch(e.code){
-  //       case 'E_INVALID_AUTH_PASSWORD':
-  //         return response.badRequest({error:'Contraseña invalida'})
-  //       default:
-  //         return response.badRequest({error: e.code })
-  //     }
-  //   }
-  // }
-
-  // public async logout({auth, response}: HttpContextContract){
-  //   try{
-  //     await auth.use('web').authenticate()
-  //     await auth.use('web').logout()
-  //     return response.ok({
-  //       mensaje:'Sesion terminada'
-  //     })
-  //   }catch(E_INVALID_AUTH_SESSIO){
-  //     return response.badRequest({error: 'No hay sesiones activas'})
-  //   }
-  // }
-
-
-  public async login({ request, response}: HttpContextContract) {
+  public async login({auth, request, response}: HttpContextContract) {
     const email = request.input('email')
     const password = request.input('password')
     try {
       const user = await Usuario.findByOrFail('email', email)
-      if((user.activated == true)&&(await Hash.verify(user.password, password))){
-        return response.ok({mensaje:'Validacion correcta'})
+      if(user.activated == true){
+        const token = await auth.use('api').attempt(email, password)
+        return response.ok({
+          token: token,
+          mensaje:'sesion iniciada'
+        })
       }
       else{
-        return response.notFound({error:'Validacion incorrecta'})
+        return response.notFound({error:'Usuario no encontrado'})
       }
     } catch (e) {
       switch(e.code){
         case 'E_INVALID_AUTH_PASSWORD':
           return response.badRequest({error:'Contraseña invalida'})
         case 'E_ROW_NOT_FOUND':
-          return response.badRequest({error:'Usuario no encontrado'})
+          return response.badRequest({error: "Usuario no encontrado"})
         default:
+          console.log(e)
           return response.badRequest({error: e.code })
       }
     }
   }
+
+  public async logout({auth, response}: HttpContextContract){
+    try{
+      await auth.use('api').authenticate()
+      await auth.use('api').logout()
+      return response.ok({
+        mensaje:'Sesion terminada'
+      })
+    }catch(E_INVALID_AUTH_SESSIO){
+      return response.badRequest({error: 'No hay sesiones activas'})
+    }
+  }
+
+
+  // public async login({ request, response}: HttpContextContract) {
+  //   const email = request.input('email')
+  //   const password = request.input('password')
+  //   try {
+  //     const user = await Usuario.findByOrFail('email', email)
+  //     if((user.activated == true)&&(await Hash.verify(user.password, password))){
+  //       return response.ok({mensaje:'Validacion correcta'})
+  //     }
+  //     else{
+  //       return response.notFound({error:'Validacion incorrecta'})
+  //     }
+  //   } catch (e) {
+  //     switch(e.code){
+  //       case 'E_INVALID_AUTH_PASSWORD':
+  //         return response.badRequest({error:'Contraseña invalida'})
+  //       case 'E_ROW_NOT_FOUND':
+  //         return response.badRequest({error:'Usuario no encontrado'})
+  //       default:
+  //         return response.badRequest({error: e.code })
+  //     }
+  //   }
+  // }
 
   public async statusCuenta({request, response}: HttpContextContract){
     try {

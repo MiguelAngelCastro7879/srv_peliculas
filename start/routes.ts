@@ -33,6 +33,7 @@ Route.resource('/idiomas', 'IdiomasController').apiOnly()
 
 Route.resource('/peliculas', 'PeliculasController').apiOnly()
 Route.post('/peliculas/:id/agregar_actor', 'PeliculasController.agregarActor')
+Route.post('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
 
 Route.resource('/productoras', 'ProductorasController').apiOnly()
 Route.resource('/actores', 'ActoresController').apiOnly()
@@ -44,7 +45,7 @@ Route.post('/status', 'UsuariosController.statusCuenta')
 
 Route.get('dashboard', async ({ auth, response }) => {
   try {
-    const sesion = await auth.use('web').authenticate()
+    const sesion = await auth.use('api').authenticate()
     response.status(200).send({ususario:sesion})
   } catch (E_INVALID_AUTH_SESSION) {
     response.badRequest({error: 'No se ha iniciado sesion'})

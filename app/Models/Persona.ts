@@ -27,7 +27,8 @@ export default class Persona extends BaseModel {
 
   @hasOne(() => Usuario,{
     localKey:'id',
-    foreignKey:'persona_id'
+    foreignKey:'persona_id',
+    serializeAs:'cuenta'
   })
   public usuario: HasOne<typeof Usuario>
 

@@ -46,7 +46,16 @@ export default class PeliculasController {
 
   public async show({response, request}: HttpContextContract) {
     try {
-      const pelicula = await Pelicula.findOrFail(request.params().id)
+
+      const pelicula = await Pelicula.query().
+      has('categoria').preload('categoria').
+      has('clasificacion').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).where('id',request.params().id)
+      // const pelicula = await Pelicula.findOrFail(request.params().id)
       return response.ok({
         pelicula:pelicula
       })
@@ -90,8 +99,17 @@ export default class PeliculasController {
 
   public async destroy({request, response}: HttpContextContract) {
     try {
-      const pelicula = await Pelicula.findOrFail(request.params().id)
-      pelicula.delete()
+      const p = await Pelicula.findOrFail(request.params().id)
+      // await Pelicula.query().
+      // whereHas('papeles',(query)=>{
+      //   query.delete()
+      // })
+      const pelicula = await Pelicula.query().
+      whereHas('papeles',(query)=>{
+        query.delete()
+      }).where('id',request.params().id)
+
+      p.delete()
       return response.ok({
         pelicula:pelicula,
         mensaje:'Pelicula eliminada correctamente'
@@ -136,6 +154,34 @@ export default class PeliculasController {
           return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
         case 'E_ROW_NOT_FOUND':
           return response.badRequest({error: "Pelicula no encontrada", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+  public async eliminarPapel({response ,params}: HttpContextContract) {
+    try {
+      const papel = await Papel.findOrFail(params.id)
+      papel.delete()
+
+      const pelicula = await Pelicula.query().
+      has('categoria').preload('categoria').
+      has('clasificacion').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).where('id',papel.pelicula_id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Papel eliminado correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Papel no encontrado", mensajes:e.messages})
         default:
           return response.badRequest({error: e.code })
       }
