@@ -64,6 +64,8 @@ export default class UsuariosController {
       switch(e.code){
         case 'E_VALIDATION_FAILURE':
           return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
         default:
           return response.badRequest({error: e.code })
       }

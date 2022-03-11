@@ -25,7 +25,7 @@ Route.get('/', async () => {
 })
 
 // Route.resource('/personas', 'PersonasController').apiOnly()
-
+/*
 Route.resource('/usuarios', 'UsuariosController').apiOnly()
 Route.resource('/categorias', 'CategoriasController').apiOnly()
 Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
@@ -39,9 +39,11 @@ Route.resource('/productoras', 'ProductorasController').apiOnly()
 Route.resource('/actores', 'ActoresController').apiOnly()
 
 
+Route.post('/status', 'UsuariosController.statusCuenta')
+*/
 Route.post('/login', 'UsuariosController.login')
 Route.post('/logout', 'UsuariosController.logout')
-Route.post('/status', 'UsuariosController.statusCuenta')
+
 
 Route.get('dashboard', async ({ auth, response }) => {
   try {
@@ -51,8 +53,24 @@ Route.get('dashboard', async ({ auth, response }) => {
     response.badRequest({error: 'No se ha iniciado sesion'})
   }
 
-// }).middleware('auth:web')
+// })
 })
+
+Route.group(()=>{
+  Route.resource('/usuarios', 'UsuariosController').apiOnly()
+  Route.resource('/categorias', 'CategoriasController').apiOnly()
+  Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
+  Route.resource('/idiomas', 'IdiomasController').apiOnly()
+  
+  Route.resource('/peliculas', 'PeliculasController').apiOnly()
+  Route.post('/peliculas/:id/agregar_actor', 'PeliculasController.agregarActor')
+  Route.post('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
+  
+  Route.resource('/productoras', 'ProductorasController').apiOnly()
+  Route.resource('/actores', 'ActoresController').apiOnly()
+  
+  Route.post('/status', 'UsuariosController.statusCuenta')
+}).middleware('auth:api')
 
 Route.get('inicia_sesion', async () => {
   return {hello:'conectateeee'}
