@@ -83,6 +83,8 @@ Route.group(()=>{
   Route.post('/status', 'UsuariosController.statusCuenta')
 }).middleware('auth:api')
 
+Route.get('/verificar_token', 'UsuariosController.verificarToken')
+
 Route.get('inicia_sesion', async () => {
   return {hello:'conectateeee'}
 })

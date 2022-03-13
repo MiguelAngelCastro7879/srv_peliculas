@@ -131,11 +131,9 @@ export default class UsuariosController {
     const password = request.input('password')
     try {
       const user = await Usuario.findByOrFail('email', email)
-      await Database.from('api_tokens').where('user_id', user.id).delete()
+      await Database.from('jwt_tokens').where('user_id', user.id).delete()
       if(user.activated == true){
-        const token = await auth.use('api').attempt(email, password,{
-          expiresIn: '7days'
-        })
+        const token = await auth.use('jwt').attempt(email, password)
         return response.ok({
           token: token,
           mensaje:'sesion iniciada'
@@ -159,8 +157,8 @@ export default class UsuariosController {
 
   public async logout({auth, response}: HttpContextContract){
     try{
-      await auth.use('api').authenticate()
-      await auth.use('api').logout()
+      await auth.use('jwt').authenticate()
+      await auth.use('jwt').logout()
       return response.ok({
         mensaje:'Sesion terminada'
       })
@@ -189,28 +187,11 @@ export default class UsuariosController {
       }
     }
   }
-
-  // public async login({ request, response}: HttpContextContract) {
-  //   const email = request.input('email')
-  //   const password = request.input('password')
-  //   try {
-  //     const user = await Usuario.findByOrFail('email', email)
-  //     if((user.activated == true)&&(await Hash.verify(user.password, password))){
-  //       return response.ok({mensaje:'Validacion correcta'})
-  //     }
-  //     else{
-  //       return response.notFound({error:'Validacion incorrecta'})
-  //     }
-  //   } catch (e) {
-  //     switch(e.code){
-  //       case 'E_INVALID_AUTH_PASSWORD':
-  //         return response.badRequest({error:'Contraseña invalida'})
-  //       case 'E_ROW_NOT_FOUND':
-  //         return response.badRequest({error:'Usuario no encontrado'})
-  //       default:
-  //         return response.badRequest({error: e.code })
-  //     }
-  //   }
-  // }
-
+  public async verificarToken({auth, response}: HttpContextContract){
+    try{
+      return await auth.use('jwt').authenticate()
+    }catch(E_INVALID_AUTH_SESSIO){
+      return response.badRequest({error: 'Token Invalido'})
+    }
+  }
 }
