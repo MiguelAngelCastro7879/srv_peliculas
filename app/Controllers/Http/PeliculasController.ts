@@ -3,17 +3,19 @@ import Papel from 'App/Models/Papel';
 import Pelicula from 'App/Models/Pelicula';
 import PapelValidator from 'App/Validators/PapelValidator';
 import PeliculaValidator from 'App/Validators/PeliculaValidator';
+import { schema, rules } from '@ioc:Adonis/Core/Validator'
+import PeliculaIdioma from 'App/Models/PeliculaIdioma';
+import PeliculaProductora from 'App/Models/PeliculaProductora';
 
 export default class PeliculasController {
   public async index({response}: HttpContextContract) {
     const peliculas = await Pelicula.query().
-    has('categoria').preload('categoria').
-    has('clasificacion').preload('clasificacion').
+    preload('categoria').preload('clasificacion').
     preload('papeles',(query)=>{
       query.preload('actor',(subquery)=>{
         subquery.preload('persona')
       })
-    })
+    }).preload('idioma').preload('productora')
     return response.ok({
       peliculas:peliculas
     })
@@ -26,8 +28,8 @@ export default class PeliculasController {
       const p = await Pelicula.create(payload)
 
       const pelicula = await Pelicula.query().
-      has('categoria').preload('categoria').
-      has('clasificacion').preload('clasificacion').where('id', p.id)
+      preload('categoria').preload('clasificacion').
+      preload('idioma').preload('productora').where('id', p.id)
       return response.ok({
         pelicula:pelicula,
         mensaje:'Pelicula creada correctamente'
@@ -46,16 +48,13 @@ export default class PeliculasController {
 
   public async show({response, request}: HttpContextContract) {
     try {
-
       const pelicula = await Pelicula.query().
-      has('categoria').preload('categoria').
-      has('clasificacion').preload('clasificacion').
+      preload('categoria').preload('clasificacion').
       preload('papeles',(query)=>{
         query.preload('actor',(subquery)=>{
           subquery.preload('persona')
         })
-      }).where('id',request.params().id)
-      // const pelicula = await Pelicula.findOrFail(request.params().id)
+      }).preload('idioma').preload('productora').where('id',request.params().id)
       return response.ok({
         pelicula:pelicula
       })
@@ -100,14 +99,18 @@ export default class PeliculasController {
   public async destroy({request, response}: HttpContextContract) {
     try {
       const p = await Pelicula.findOrFail(request.params().id)
-      // await Pelicula.query().
-      // whereHas('papeles',(query)=>{
-      //   query.delete()
-      // })
+
       const pelicula = await Pelicula.query().
-      whereHas('papeles',(query)=>{
-        query.delete()
-      }).where('id',request.params().id)
+      preload('categoria').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).preload('idioma').preload('productora').where('id', p.id)
+
+      await Papel.query().has('pelicula').delete().where('pelicula_id', p.id)
+      await PeliculaProductora.query().has('pelicula').delete().where('pelicula_id', p.id)
+      await PeliculaIdioma.query().has('pelicula').delete().where('pelicula_id', p.id)
 
       p.delete()
       return response.ok({
@@ -119,13 +122,14 @@ export default class PeliculasController {
         case 'E_ROW_NOT_FOUND':
           return response.badRequest({error: "Pelicula no encontrada"})
         default:
+          console.log(e)
           return response.badRequest({error: e.code })
       }
     }
   }
 
 
-  public async agregarActor({response , request}: HttpContextContract, ctx: HttpContextContract) {
+  public async agregarPapel({response , request}: HttpContextContract, ctx: HttpContextContract) {
     const validacion = new PapelValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.schema,});
@@ -136,13 +140,12 @@ export default class PeliculasController {
         pelicula_id:p.id
       })
       const pelicula = await Pelicula.query().
-      has('categoria').preload('categoria').
-      has('clasificacion').preload('clasificacion').
+      preload('categoria').preload('clasificacion').
       preload('papeles',(query)=>{
         query.preload('actor',(subquery)=>{
           subquery.preload('persona')
         })
-      }).where('id', p.id)
+      }).preload('idioma').preload('productora').where('id', p.id)
 
       return response.ok({
         pelicula:pelicula,
@@ -160,19 +163,99 @@ export default class PeliculasController {
     }
   }
 
-  public async eliminarPapel({response ,params}: HttpContextContract) {
-    try {
-      const papel = await Papel.findOrFail(params.id)
-      papel.delete()
+  public async agregarProductora({response , request}: HttpContextContract) {
 
+    const validacion =  schema.create({
+      productora_id: schema.number([
+        rules.exists({ table: 'productoras', column: 'id' })
+      ]),
+    })
+
+    try {
+      const payload = await request.validate({schema: validacion,})
+      const p = await Pelicula.findOrFail(request.params().id)
+      await PeliculaProductora.create({
+        productora_id:payload.productora_id,
+        pelicula_id:p.id
+      })
       const pelicula = await Pelicula.query().
-      has('categoria').preload('categoria').
-      has('clasificacion').preload('clasificacion').
+      preload('categoria').preload('clasificacion').
       preload('papeles',(query)=>{
         query.preload('actor',(subquery)=>{
           subquery.preload('persona')
         })
-      }).where('id',papel.pelicula_id)
+      }).preload('idioma').preload('productora').where('id', p.id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Clasificacion actualizada correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Pelicula no encontrada", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+  public async agregarIdioma({response , request}: HttpContextContract) {
+
+    const validacion =  schema.create({
+      idioma_id: schema.number([
+        rules.exists({ table: 'idiomas', column: 'id' })
+      ]),
+    })
+
+    try {
+      const payload = await request.validate({schema: validacion,});
+      const p = await Pelicula.findOrFail(request.params().id)
+      await PeliculaIdioma.create({
+        idioma_id:payload.idioma_id,
+        pelicula_id:p.id
+      })
+
+      const pelicula = await Pelicula.query().
+      preload('categoria').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).preload('idioma').preload('productora').where('id', p.id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Idioma agregado correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_VALIDATION_FAILURE':
+          return response.badRequest({error: "Ha habido un error de validacion", mensajes:e.messages})
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Pelicula no encontrada", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+
+  public async eliminarPapel({response ,params}: HttpContextContract) {
+    try {
+      const papel = await Papel.findOrFail(params.id)
+      const id = papel.pelicula_id
+      papel.delete()
+
+      const pelicula = await Pelicula.query().
+      preload('categoria').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).preload('idioma').preload('productora').where('id',id)
 
       return response.ok({
         pelicula:pelicula,
@@ -182,6 +265,62 @@ export default class PeliculasController {
       switch(e.code){
         case 'E_ROW_NOT_FOUND':
           return response.badRequest({error: "Papel no encontrado", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+  public async eliminarProductora({response ,params}: HttpContextContract) {
+    try {
+      const productora = await PeliculaProductora.findOrFail(params.id)
+      const id = productora.pelicula_id
+      productora.delete()
+
+      const pelicula = await Pelicula.query().
+      preload('categoria').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).preload('idioma').preload('productora').where('id',id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Productora eliminada correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Productora no encontrada", mensajes:e.messages})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
+
+  public async eliminarIdioma({response ,params}: HttpContextContract) {
+    try {
+      const idioma = await PeliculaIdioma.findOrFail(params.id)
+      const id = idioma.pelicula_id
+      idioma.delete()
+
+      const pelicula = await Pelicula.query().
+      preload('categoria').preload('clasificacion').
+      preload('papeles',(query)=>{
+        query.preload('actor',(subquery)=>{
+          subquery.preload('persona')
+        })
+      }).preload('idioma').preload('productora').where('id',id)
+
+      return response.ok({
+        pelicula:pelicula,
+        mensaje:'Idioma eliminado correctamente'
+      })
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Idioma no encontrado", mensajes:e.messages})
         default:
           return response.badRequest({error: e.code })
       }

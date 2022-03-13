@@ -3,6 +3,7 @@ import Persona from 'App/Models/Persona';
 import Usuario from 'App/Models/Usuario';
 import Hash from '@ioc:Adonis/Core/Hash'
 import UsuarioValidator from 'App/Validators/UsuarioValidator';
+import Database from '@ioc:Adonis/Lucid/Database';
 
 export default class UsuariosController {
   public async index({response}: HttpContextContract) {
@@ -18,29 +19,34 @@ export default class UsuariosController {
     const validacion = new UsuarioValidator(ctx)
     try {
       const payload = await request.validate({schema: validacion.newSchema,});
-      const persona = await Persona.create({
-        nombre: payload.nombre,
-        //f_nacimiento: payload.f_nacimiento.toString(),
-        f_nacimiento: payload.f_nacimiento.toSQLDate(),
-        nacionalidad: payload.nacionalidad
-      })
-      const user = await Usuario.create({
-        username:payload.username,
-        email:payload.email,
-        activated:true,
-        password:await Hash.make(payload.password),
-        persona_id:persona.id
-      })
-      return response.ok({
-        usuario:{
-          'nombre':persona.nombre,
-          'f_nacimiento':persona.f_nacimiento,
-          'nacionalidad':persona.nacionalidad,
-          'username':user.username,
-          'email':user.email,
-        },
-        mensaje:'Usuario creado correctamente'
-      })
+      const u = await Usuario.findBy('email',payload.email)
+      if(u == null){
+        const persona = await Persona.create({
+          nombre: payload.nombre,
+          //f_nacimiento: payload.f_nacimiento.toString(),
+          f_nacimiento: payload.f_nacimiento.toSQLDate(),
+          nacionalidad: payload.nacionalidad
+        })
+        const user = await Usuario.create({
+          username:payload.username,
+          email:payload.email,
+          activated:true,
+          password:await Hash.make(payload.password),
+          persona_id:persona.id
+        })
+        return response.ok({
+          usuario:{
+            'nombre':persona.nombre,
+            'f_nacimiento':persona.f_nacimiento,
+            'nacionalidad':persona.nacionalidad,
+            'username':user.username,
+            'email':user.email,
+          },
+          mensaje:'Usuario creado correctamente'
+        })
+      }else{
+        response.badRequest({error: "El correo electronico ya está en uso"})
+      }
     } catch (e) {
       switch(e.code){
         case 'E_VALIDATION_FAILURE':
@@ -120,13 +126,16 @@ export default class UsuariosController {
     }
   }
 
-  public async login({auth, request, response}: HttpContextContract) {
+  public async login({auth, request, response}: HttpContextContract, ) {
     const email = request.input('email')
     const password = request.input('password')
     try {
       const user = await Usuario.findByOrFail('email', email)
+      await Database.from('api_tokens').where('user_id', user.id).delete()
       if(user.activated == true){
-        const token = await auth.use('api').attempt(email, password)
+        const token = await auth.use('api').attempt(email, password,{
+          expiresIn: '7days'
+        })
         return response.ok({
           token: token,
           mensaje:'sesion iniciada'
@@ -160,6 +169,26 @@ export default class UsuariosController {
     }
   }
 
+  public async statusCuenta({request, response}: HttpContextContract){
+    try {
+      const user = await Usuario.findByOrFail('email',request.input('email'))
+      user.activated = !user.activated
+      user.save()
+      if(user.activated){
+        return response.ok({mensaje:'Cuenta activada'})
+      }
+      else{
+        return response.ok({mensaje:'Cuenta desactivada'})
+      }
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
 
   // public async login({ request, response}: HttpContextContract) {
   //   const email = request.input('email')
@@ -184,24 +213,4 @@ export default class UsuariosController {
   //   }
   // }
 
-  public async statusCuenta({request, response}: HttpContextContract){
-    try {
-      const user = await Usuario.findByOrFail('email',request.input('email'))
-      user.activated = !user.activated
-      user.save()
-      if(user.activated){
-        return response.ok({mensaje:'Cuenta activada'})
-      }
-      else{
-        return response.ok({mensaje:'Cuenta desactivada'})
-      }
-    }catch (e) {
-      switch(e.code){
-        case 'E_ROW_NOT_FOUND':
-          return response.badRequest({error: "Usuario no encontrado"})
-        default:
-          return response.badRequest({error: e.code })
-      }
-    }
-  }
 }

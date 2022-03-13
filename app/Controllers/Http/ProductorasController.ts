@@ -1,4 +1,5 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import PeliculaProductora from 'App/Models/PeliculaProductora'
 import Productora from 'App/Models/Productora'
 import ProductoraValidator from 'App/Validators/ProductoraValidator'
 
@@ -74,6 +75,7 @@ export default class ProductorasController {
   public async destroy({request, response}: HttpContextContract) {
     try {
       const productora = await Productora.findOrFail(request.params().id)
+      await PeliculaProductora.query().has('pelicula').delete().where('productora_id', productora.id)
       productora.delete()
       return response.ok({
         productora:productora,

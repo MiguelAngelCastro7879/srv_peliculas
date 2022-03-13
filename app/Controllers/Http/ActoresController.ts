@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Actor from 'App/Models/Actor'
+import Papel from 'App/Models/Papel'
 import Persona from 'App/Models/Persona'
 import ActorValidator from 'App/Validators/ActorValidator'
 
@@ -107,7 +108,9 @@ export default class ActoresController {
 
   public async destroy({request, response}: HttpContextContract) {
     try{
-      const actor = await (await Actor.findOrFail(request.params().id)).delete()
+      const actor = await Actor.findOrFail(request.params().id)
+      await Papel.query().has('pelicula').delete().where('productora_id', actor.id)
+      actor.delete()
       return response.ok({
         actor:actor,
         mensaje:'Actor eliminado'

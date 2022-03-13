@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Idioma from 'App/Models/Idioma';
+import PeliculaIdioma from 'App/Models/PeliculaIdioma';
 import IdiomaValidator from 'App/Validators/IdiomaValidator';
 
 export default class IdiomasController {
@@ -71,6 +72,7 @@ export default class IdiomasController {
   public async destroy({request, response}: HttpContextContract) {
     try {
       const idioma = await Idioma.findOrFail(request.params().id)
+      await PeliculaIdioma.query().has('pelicula').delete().where('idioma_id', idioma.id)
       idioma.delete()
       return response.ok({
         idioma:idioma,

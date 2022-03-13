@@ -5,6 +5,8 @@ import Clasificacion from './Clasificacion'
 import Idioma from './Idioma'
 import Productora from './Productora'
 import Papel from './Papel'
+import PeliculaProductora from './PeliculaProductora'
+import PeliculaIdioma from './PeliculaIdioma'
 
 export default class Pelicula extends BaseModel {
   @column({ isPrimary: true })
@@ -22,10 +24,12 @@ export default class Pelicula extends BaseModel {
   @column()
   public calificacion: number
 
-  @column()
+  @column({
+    serializeAs: null})
   public categoria_id: number
 
-  @column()
+  @column({
+    serializeAs: null})
   public clasificacion_id: number
 
   @column.dateTime({
@@ -75,4 +79,17 @@ export default class Pelicula extends BaseModel {
     foreignKey:'pelicula_id'
   })
   public papeles: HasMany<typeof Papel>
+
+
+  @hasMany(() => PeliculaProductora, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public productoras: HasMany<typeof PeliculaProductora>
+
+  @hasMany(() => PeliculaIdioma, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public idiomas: HasMany<typeof PeliculaIdioma>
 }

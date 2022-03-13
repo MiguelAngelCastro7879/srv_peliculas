@@ -1,5 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Categoria from 'App/Models/Categoria';
+import Pelicula from 'App/Models/Pelicula';
 import CategoriaValidator from 'App/Validators/CategoriaValidator';
 
 export default class CategoriasController {
@@ -71,6 +72,9 @@ export default class CategoriasController {
   public async destroy({request, response}: HttpContextContract) {
     try {
       const categoria = await Categoria.findOrFail(request.params().id)
+      await Pelicula.query().where('categoria_id', categoria.id).update({
+        categoria_id:null
+      })
       categoria.delete()
       return response.ok({
         categoria:categoria,
