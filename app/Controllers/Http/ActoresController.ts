@@ -109,7 +109,7 @@ export default class ActoresController {
   public async destroy({request, response}: HttpContextContract) {
     try{
       const actor = await Actor.findOrFail(request.params().id)
-      await Papel.query().has('pelicula').delete().where('productora_id', actor.id)
+      await Papel.query().has('pelicula').delete().where('actor_id', actor.id)
       actor.delete()
       return response.ok({
         actor:actor,
