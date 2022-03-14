@@ -157,13 +157,12 @@ export default class UsuariosController {
 
   public async logout({auth, response}: HttpContextContract){
     try{
-      await auth.use('jwt').authenticate()
-      await auth.use('jwt').logout()
+      await auth.use('jwt').revoke()
       return response.ok({
         mensaje:'Sesion terminada'
       })
-    }catch(E_INVALID_AUTH_SESSIO){
-      return response.badRequest({error: 'No hay sesiones activas'})
+    }catch(E_INVALID_AUTH_SESSION){
+      response.badRequest({error: 'No hay sesiones activas'})
     }
   }
 

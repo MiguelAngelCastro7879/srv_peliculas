@@ -108,7 +108,7 @@ const authConfig: AuthConfig = {
       driver: "jwt",
       publicKey: Env.get('JWT_PUBLIC_KEY', '').replace(/\\n/g, '\n'),
       privateKey: Env.get('JWT_PRIVATE_KEY', '').replace(/\\n/g, '\n'),
-      persistJwt: false,
+      persistJwt: true,
       jwtDefaultExpire: '5d',
       refreshTokenDefaultExpire: '5d',
       tokenProvider: {

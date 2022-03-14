@@ -8,6 +8,8 @@ export default class JwtTokens extends BaseSchema {
       table.increments('id').primary()
       table.integer('user_id').unsigned().references('id').inTable('usuarios').onDelete('CASCADE')
       table.string('name').notNullable()
+      table.string('refresh_token').notNullable()
+      table.string('refresh_token_expires_at').notNullable()
       table.string('type').notNullable()
       table.string('token', 64).notNullable().unique()
       table.date('expires_at')
