@@ -133,7 +133,14 @@ export default class UsuariosController {
       const user = await Usuario.findByOrFail('email', email)
       await Database.from('jwt_tokens').where('user_id', user.id).delete()
       if(user.activated == true){
-        const token = await auth.use('jwt').attempt(email, password)
+        if (!(await Hash.verify(user.password, password))) {
+          return response.badRequest({error: 'Invalid credentials'})
+        }
+        const token = await auth.use('jwt').login(user,{
+          payload: {
+              email: user.email,
+          },
+        })
         return response.ok({
           token: token,
           mensaje:'sesion iniciada'
@@ -157,19 +164,27 @@ export default class UsuariosController {
 
   public async logout({auth, response}: HttpContextContract){
     try{
-      await auth.use('jwt').authenticate()
-      await auth.use('jwt').logout()
+      const usuario = await auth.use('jwt').authenticate()
+      await Database.from('jwt_tokens').where('user_id', usuario.id).delete()
       return response.ok({
+        usuario:usuario,
         mensaje:'Sesion terminada'
       })
-    }catch(E_INVALID_AUTH_SESSIO){
-      return response.badRequest({error: 'No hay sesiones activas'})
+    }catch(e){
+      switch(e.code){
+        case 'E_INVALID_AUTH_SESSIO':
+          return response.badRequest({error: 'Token Invalido'})
+        default:
+          console.log(e)
+          return response.badRequest({error: e.code })
+      }
     }
   }
 
-  public async statusCuenta({request, response}: HttpContextContract){
+  public async statusCuenta({auth, response}: HttpContextContract){
     try {
-      const user = await Usuario.findByOrFail('email',request.input('email'))
+      const user = await auth.use('jwt').authenticate()
+      await Database.from('jwt_tokens').where('user_id', user.id).delete()
       user.activated = !user.activated
       user.save()
       if(user.activated){
