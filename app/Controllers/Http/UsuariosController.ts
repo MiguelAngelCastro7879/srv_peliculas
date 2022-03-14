@@ -190,10 +190,9 @@ export default class UsuariosController {
     }
   }
 
-  public async statusCuenta({auth, response}: HttpContextContract){
+  public async statusCuenta({request, response}: HttpContextContract){
     try {
-      const user = await auth.use('jwt').authenticate()
-      await Database.from('jwt_tokens').where('user_id', user.id).delete()
+      const user = await Usuario.findByOrFail('email',request.input('email'))
       user.activated = !user.activated
       user.save()
       if(user.activated){
