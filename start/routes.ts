@@ -49,7 +49,7 @@ Route.post('/usuarios', 'UsuariosController.store')
 
 Route.get('dashboard', async ({ auth, response }) => {
   try {
-    const sesion = await auth.use('api').authenticate()
+    const sesion = await auth.use('jwt').authenticate()
     response.status(200).send({ususario:sesion})
   } catch (E_INVALID_AUTH_SESSION) {
     response.badRequest({error: 'No se ha iniciado sesion'})
@@ -81,7 +81,7 @@ Route.group(()=>{
 
 
   Route.post('/status', 'UsuariosController.statusCuenta')
-}).middleware('auth:api')
+}).middleware('auth:jwt')
 
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
 
