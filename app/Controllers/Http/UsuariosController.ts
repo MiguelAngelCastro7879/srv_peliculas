@@ -131,18 +131,17 @@ export default class UsuariosController {
     const password = request.input('password')
     try {
       const user = await Usuario.findByOrFail('email', email)
-      await Database.from('jwt_tokens').where('user_id', user.id).delete()
+      
+      await Database.from('api_tokens').where('user_id', user.id).delete()
       if(user.activated == true){
         if (!(await Hash.verify(user.password, password))) {
           return response.badRequest({error: 'Invalid credentials'})
         }
-        const token = await auth.use('jwt').login(user,{
-          payload: {
-              email: user.email,
-          },
-        })
+        const token = await auth.use('api').attempt(email, password)
+        response.header('Authorization', 'Bearer '+token)
         return response.ok({
           token: token,
+          usuario:user,
           mensaje:'sesion iniciada'
         })
       }
@@ -162,22 +161,16 @@ export default class UsuariosController {
     }
   }
 
-  public async logout({auth, response}: HttpContextContract){
+  public async logout({auth, request, response}: HttpContextContract){
     try{
-<<<<<<< HEAD
-      await auth.use('jwt').revoke()
-=======
-      const usuario = await auth.use('jwt').authenticate()
-      await Database.from('jwt_tokens').where('user_id', usuario.id).delete()
->>>>>>> bed6fe419f354d93e4787601dc1521cc8664ee64
+      // const usuario = await auth.use('api').authenticate()
+      await auth.use('api').revoke()
+      // await Database.from('api_tokens').where('user_id', usuario.id).delete()
+      console.log(request.headers())
       return response.ok({
-        usuario:usuario,
+        // usuario:usuario,
         mensaje:'Sesion terminada'
       })
-<<<<<<< HEAD
-    }catch(E_INVALID_AUTH_SESSION){
-      response.badRequest({error: 'No hay sesiones activas'})
-=======
     }catch(e){
       switch(e.code){
         case 'E_INVALID_AUTH_SESSIO':
@@ -186,7 +179,6 @@ export default class UsuariosController {
           console.log(e)
           return response.badRequest({error: e.code })
       }
->>>>>>> bed6fe419f354d93e4787601dc1521cc8664ee64
     }
   }
 
@@ -212,7 +204,7 @@ export default class UsuariosController {
   }
   public async verificarToken({auth, response}: HttpContextContract){
     try{
-      return await auth.use('jwt').authenticate()
+      return await auth.use('api').authenticate()
     }catch(E_INVALID_AUTH_SESSIO){
       return response.badRequest({error: 'Token Invalido'})
     }

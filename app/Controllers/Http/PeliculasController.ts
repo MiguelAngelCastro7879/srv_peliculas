@@ -54,7 +54,7 @@ export default class PeliculasController {
         query.preload('actor',(subquery)=>{
           subquery.preload('persona')
         })
-      }).preload('idioma').preload('productora').where('id',request.params().id)
+      }).preload('idioma').preload('productora').where('id',request.params().id).firstOrFail()
       return response.ok({
         pelicula:pelicula
       })

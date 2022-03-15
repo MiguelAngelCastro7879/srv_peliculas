@@ -42,23 +42,27 @@ Route.resource('/actores', 'ActoresController').apiOnly()
 Route.post('/status', 'UsuariosController.statusCuenta')
 */
 Route.post('/login', 'UsuariosController.login')
-Route.post('/logout', 'UsuariosController.logout')
 
 Route.post('/usuarios', 'UsuariosController.store')
 
 
-Route.get('dashboard', async ({ auth, response }) => {
-  try {
-    const sesion = await auth.use('jwt').authenticate()
-    response.status(200).send({ususario:sesion})
-  } catch (E_INVALID_AUTH_SESSION) {
-    response.badRequest({error: 'No se ha iniciado sesion'})
-  }
+// Route.get('dashboard', async ({ auth, response }) => {
+//   try {
+//     const sesion = await auth.use('api').authenticate()
+//     response.status(200).send({ususario:sesion})
+//   } catch (E_INVALID_AUTH_SESSION) {
+//     console.log(E_INVALID_AUTH_SESSION)
+//     response.badRequest({error: E_INVALID_AUTH_SESSION})
+//   }
 
+// // })
 // })
-})
+
+//Route.post('/logout', 'UsuariosController.logout')
 
 Route.group(()=>{
+  
+Route.get('/logout', 'UsuariosController.logout')
   // Route.resource('/usuarios', 'UsuariosController').apiOnly()
   Route.get('/usuarios', 'UsuariosController.index')
   Route.get('/usuarios/:id', 'UsuariosController.show')
@@ -81,10 +85,10 @@ Route.group(()=>{
 
 
   Route.post('/status', 'UsuariosController.statusCuenta')
-}).middleware('auth:jwt')
+}).middleware('auth:api')
 
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
 
-Route.get('inicia_sesion', async () => {
-  return {hello:'conectateeee'}
-})
+// Route.get('inicia_sesion', async () => {
+//   return {hello:'conectateeee'}
+// })
