@@ -28,6 +28,7 @@ export default class PeliculasController {
       const p = await Pelicula.create(payload)
 
       const pelicula = await Pelicula.query().
+      has('categoria').has('clasificacion').
       preload('categoria').preload('clasificacion').
       preload('idioma').preload('productora').where('id', p.id)
       return response.ok({
