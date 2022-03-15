@@ -10,6 +10,7 @@ import PeliculaProductora from 'App/Models/PeliculaProductora';
 export default class PeliculasController {
   public async index({response}: HttpContextContract) {
     const peliculas = await Pelicula.query().
+    has('categoria').has('clasificacion').
     preload('categoria').preload('clasificacion').
     preload('papeles',(query)=>{
       query.preload('actor',(subquery)=>{
@@ -28,7 +29,6 @@ export default class PeliculasController {
       const p = await Pelicula.create(payload)
 
       const pelicula = await Pelicula.query().
-      has('categoria').has('clasificacion').
       preload('categoria').preload('clasificacion').
       preload('idioma').preload('productora').where('id', p.id)
       return response.ok({
