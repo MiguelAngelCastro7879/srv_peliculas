@@ -131,7 +131,7 @@ export default class UsuariosController {
     const password = request.input('password')
     try {
       const user = await Usuario.findByOrFail('email', email)
-      
+
       await Database.from('api_tokens').where('user_id', user.id).delete()
       if(user.activated == true){
         if (!(await Hash.verify(user.password, password))) {
@@ -161,14 +161,12 @@ export default class UsuariosController {
     }
   }
 
-  public async logout({auth, request, response}: HttpContextContract){
+  public async logout({auth, response}: HttpContextContract){
     try{
-      // const usuario = await auth.use('api').authenticate()
+      const usuario = await auth.use('api').authenticate()
       await auth.use('api').revoke()
-      // await Database.from('api_tokens').where('user_id', usuario.id).delete()
-      console.log(request.headers())
       return response.ok({
-        // usuario:usuario,
+        usuario:usuario,
         mensaje:'Sesion terminada'
       })
     }catch(e){

@@ -46,22 +46,22 @@ Route.post('/login', 'UsuariosController.login')
 Route.post('/usuarios', 'UsuariosController.store')
 
 
-// Route.get('dashboard', async ({ auth, response }) => {
-//   try {
-//     const sesion = await auth.use('api').authenticate()
-//     response.status(200).send({ususario:sesion})
-//   } catch (E_INVALID_AUTH_SESSION) {
-//     console.log(E_INVALID_AUTH_SESSION)
-//     response.badRequest({error: E_INVALID_AUTH_SESSION})
-//   }
+Route.get('dashboard', async ({ auth, response }) => {
+  try {
+    const sesion = await auth.use('api').authenticate()
+    response.status(200).send({ususario:sesion})
+  } catch (E_INVALID_AUTH_SESSION) {
+    console.log(E_INVALID_AUTH_SESSION)
+    response.badRequest({error: E_INVALID_AUTH_SESSION})
+  }
 
-// // })
 // })
+})
 
 //Route.post('/logout', 'UsuariosController.logout')
 
 Route.group(()=>{
-  
+
 Route.get('/logout', 'UsuariosController.logout')
   // Route.resource('/usuarios', 'UsuariosController').apiOnly()
   Route.get('/usuarios', 'UsuariosController.index')
