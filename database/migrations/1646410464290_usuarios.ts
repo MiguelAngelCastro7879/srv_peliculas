@@ -11,6 +11,7 @@ export default class Usuarios extends BaseSchema {
       table.string('password', 180).notNullable()
       table.string('remember_me_token').nullable()
       table.boolean('activated')
+      table.enum('rol', ['USER', 'ADMIN']).notNullable()
       table.integer('persona_id').unsigned().references('id').inTable('personas')
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL
