@@ -84,9 +84,9 @@ Route.get('/logout', 'UsuariosController.logout')
   Route.delete('/eliminar_productora/:id', 'PeliculasController.eliminarProductora')
 
 
-  Route.post('/status', 'UsuariosController.statusCuenta')
 }).middleware('auth:api')
 
+Route.post('/status', 'UsuariosController.statusCuenta')
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
 
 // Route.get('inicia_sesion', async () => {
