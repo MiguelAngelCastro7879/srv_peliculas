@@ -25,30 +25,66 @@ Route.get('/', async () => {
 })
 
 // Route.resource('/personas', 'PersonasController').apiOnly()
-
+/*
 Route.resource('/usuarios', 'UsuariosController').apiOnly()
 Route.resource('/categorias', 'CategoriasController').apiOnly()
 Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
 Route.resource('/idiomas', 'IdiomasController').apiOnly()
 Route.resource('/peliculas', 'PeliculasController').apiOnly()
+Route.post('/peliculas/:id/agregar_actor', 'PeliculasController.agregarActor')
+Route.post('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
 Route.resource('/productoras', 'ProductorasController').apiOnly()
-
-
-Route.post('/login', 'UsuariosController.login')
-Route.post('/logout', 'UsuariosController.logout')
+Route.resource('/actores', 'ActoresController').apiOnly()
 Route.post('/status', 'UsuariosController.statusCuenta')
+*/
+Route.post('/login', 'UsuariosController.login')
+
+Route.post('/usuarios', 'UsuariosController.store')
+
 
 Route.get('dashboard', async ({ auth, response }) => {
   try {
-    const sesion = await auth.use('web').authenticate()
+    const sesion = await auth.use('api').authenticate()
     response.status(200).send({ususario:sesion})
   } catch (E_INVALID_AUTH_SESSION) {
-    response.badRequest({error: 'No se ha iniciado sesion'})
+    console.log(E_INVALID_AUTH_SESSION)
+    response.badRequest({error: E_INVALID_AUTH_SESSION})
   }
 
-// }).middleware('auth:web')
+// })
 })
 
-Route.get('inicia_sesion', async () => {
-  return {hello:'conectateeee'}
-})
+//Route.post('/logout', 'UsuariosController.logout')
+
+Route.group(()=>{
+
+Route.get('/logout', 'UsuariosController.logout')
+  // Route.resource('/usuarios', 'UsuariosController').apiOnly()
+  Route.get('/usuarios', 'UsuariosController.index')
+  Route.get('/usuarios/:id', 'UsuariosController.show')
+  Route.put('/usuarios/:id', 'UsuariosController.update')
+  Route.delete('/usuarios/:id', 'UsuariosController.destroy')
+
+  Route.resource('/categorias', 'CategoriasController').apiOnly()
+  Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
+  Route.resource('/idiomas', 'IdiomasController').apiOnly()
+  Route.resource('/peliculas', 'PeliculasController').apiOnly()
+  Route.resource('/productoras', 'ProductorasController').apiOnly()
+  Route.resource('/actores', 'ActoresController').apiOnly()
+
+  Route.post('/peliculas/:id/agregar_papel', 'PeliculasController.agregarPapel')
+  Route.post('/peliculas/:id/agregar_idioma', 'PeliculasController.agregarIdioma')
+  Route.post('/peliculas/:id/agregar_productora', 'PeliculasController.agregarProductora')
+  Route.delete('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
+  Route.delete('/eliminar_idioma/:id', 'PeliculasController.eliminarIdioma')
+  Route.delete('/eliminar_productora/:id', 'PeliculasController.eliminarProductora')
+
+
+}).middleware('auth:api')
+
+Route.post('/status', 'UsuariosController.statusCuenta')
+Route.get('/verificar_token', 'UsuariosController.verificarToken')
+
+// Route.get('inicia_sesion', async () => {
+//   return {hello:'conectateeee'}
+// })
