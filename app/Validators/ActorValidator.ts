@@ -1,7 +1,7 @@
 import { schema } from '@ioc:Adonis/Core/Validator'
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 
-export default class ClasificacionValidator {
+export default class ActorValidator {
   constructor(protected ctx: HttpContextContract) {}
 
   /*
@@ -23,10 +23,18 @@ export default class ClasificacionValidator {
    *     ])
    *    ```
    */
-  public schema = schema.create({
+  public newSchema = schema.create({
     nombre: schema.string({trim:true}),
-    edad_minima:schema.number(),
-    descripcion: schema.string({trim:true}),
+    f_nacimiento: schema.date({
+      format: 'sql',
+    }),
+    nacionalidad: schema.string(),
+    inicio_carrera: schema.date({
+      format: 'sql',
+    }),
+    final_carrera: schema.date.optional({
+      format: 'sql',
+    }),
   });
 
   /**

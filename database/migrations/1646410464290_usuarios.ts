@@ -7,8 +7,9 @@ export default class Usuarios extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.string('username')
-      table.string('email').unique()
-      table.string('password')
+      table.string('email', 255).notNullable().unique()
+      table.string('password', 180).notNullable()
+      table.string('remember_me_token').nullable()
       table.boolean('activated')
       table.integer('persona_id').unsigned().references('id').inTable('personas')
       /**

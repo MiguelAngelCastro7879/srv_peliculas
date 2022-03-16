@@ -1,16 +1,17 @@
 import { DateTime } from 'luxon'
 import { BaseModel, column, hasOne, HasOne } from '@ioc:Adonis/Lucid/Orm'
 import Usuario from './Usuario'
+import Actor from './Actor'
 
 export default class Persona extends BaseModel {
   @column({ isPrimary: true })
   public id: number
   @column()
-  public nombre: string;
+  public nombre: string
   @column()
-  public f_nacimiento:string;
+  public f_nacimiento:string
   @column()
-  public nacionalidad:string;
+  public nacionalidad:string
 
   @column.dateTime({
     serializeAs: null,
@@ -26,7 +27,14 @@ export default class Persona extends BaseModel {
 
   @hasOne(() => Usuario,{
     localKey:'id',
-    foreignKey:'persona_id'
+    foreignKey:'persona_id',
+    serializeAs:'cuenta'
   })
   public usuario: HasOne<typeof Usuario>
+
+  @hasOne(() => Actor,{
+    localKey:'id',
+    foreignKey:'persona_id'
+  })
+  public actor: HasOne<typeof Actor>
 }

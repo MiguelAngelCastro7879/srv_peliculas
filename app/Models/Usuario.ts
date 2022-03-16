@@ -4,7 +4,7 @@ import Persona from './Persona'
 
 export default class Usuario extends BaseModel {
 
-  @column({ isPrimary: true })
+  @column({ isPrimary: true})
   public id: number
 
   @column()
@@ -19,6 +19,16 @@ export default class Usuario extends BaseModel {
   public password:string
 
   @column()
+  public rol:string
+
+  @column({
+    serializeAs: null,
+   })
+  public remember_me_token:string
+
+  @column({
+    serializeAs: null,
+   })
   public activated:boolean
 
   @column({

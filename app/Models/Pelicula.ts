@@ -1,13 +1,36 @@
 import { DateTime } from 'luxon'
-import { BaseModel, belongsTo, BelongsTo, column, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, belongsTo, BelongsTo, column, HasMany, hasMany, ManyToMany, manyToMany } from '@ioc:Adonis/Lucid/Orm'
 import Categoria from './Categoria'
 import Clasificacion from './Clasificacion'
 import Idioma from './Idioma'
 import Productora from './Productora'
+import Papel from './Papel'
+import PeliculaProductora from './PeliculaProductora'
+import PeliculaIdioma from './PeliculaIdioma'
 
 export default class Pelicula extends BaseModel {
   @column({ isPrimary: true })
   public id: number
+
+  @column()
+  public nombre: string
+
+  @column()
+  public descripcion: string
+
+  @column()
+  public duracion: number
+
+  @column()
+  public calificacion: number
+
+  @column({
+    serializeAs: null})
+  public categoria_id: number
+
+  @column({
+    serializeAs: null})
+  public clasificacion_id: number
 
   @column.dateTime({
     serializeAs: null,
@@ -19,10 +42,16 @@ export default class Pelicula extends BaseModel {
     autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
 
-  @belongsTo(() => Categoria)
+  @belongsTo(() => Categoria, {
+    localKey: 'id', // id column on "Categoria" model
+    foreignKey: 'categoria_id', // userId column on "Pelicula" model
+  })
   public categoria: BelongsTo<typeof Categoria>
 
-  @belongsTo(() => Clasificacion)
+  @belongsTo(() => Clasificacion, {
+    localKey: 'id', // id column on "clasificacion" model
+    foreignKey: 'clasificacion_id', // userId column on "Pelicula" model
+  })
   public clasificacion: BelongsTo<typeof Clasificacion>
 
   @manyToMany(() => Idioma, {
@@ -43,4 +72,24 @@ export default class Pelicula extends BaseModel {
     localKey: 'id', // id column on "Pelicula" model
   })
   public productora: ManyToMany<typeof Productora>
+
+
+  @hasMany(() => Papel, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public papeles: HasMany<typeof Papel>
+
+
+  @hasMany(() => PeliculaProductora, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public productoras: HasMany<typeof PeliculaProductora>
+
+  @hasMany(() => PeliculaIdioma, {
+    localKey:'id',
+    foreignKey:'pelicula_id'
+  })
+  public idiomas: HasMany<typeof PeliculaIdioma>
 }

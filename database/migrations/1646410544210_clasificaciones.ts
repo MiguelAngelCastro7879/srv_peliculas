@@ -7,6 +7,7 @@ export default class Clasificaciones extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
       table.string('nombre')
+      table.text('descripcion')
       table.integer('edad_minima')
 
       /**

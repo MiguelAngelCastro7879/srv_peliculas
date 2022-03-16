@@ -1,9 +1,23 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import Persona from './Persona'
 
 export default class Actor extends BaseModel {
+
+  public static table = 'actores'
+
   @column({ isPrimary: true })
   public id: number
+
+  @column({
+    serializeAs: null,})
+  public persona_id: number
+
+  @column()
+  public inicio_carrera: string
+
+  @column()
+  public final_carrera: string
 
   @column.dateTime({
     serializeAs: null,
@@ -14,4 +28,10 @@ export default class Actor extends BaseModel {
     serializeAs: null,
     autoCreate: true, autoUpdate: true })
   public updatedAt: DateTime
+
+  @belongsTo(() => Persona, {
+    localKey:'id',
+    foreignKey:'persona_id'
+  })
+  public persona: BelongsTo<typeof Persona>
 }

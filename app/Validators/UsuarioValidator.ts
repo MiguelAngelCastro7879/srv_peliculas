@@ -30,12 +30,14 @@ export default class UsuarioValidator {
     }),
     nacionalidad: schema.string(),
     username: schema.string(),
+    rol: schema.enum(['ADMIN', 'USER']),
     email: schema.string({}, [
       rules.email({
         sanitize: true,
         ignoreMaxLength: true,
         domainSpecificValidation: true,
-      })
+      }),
+      // rules.unique({ table: 'usuarios', column: 'email' })
     ]),
     password: schema.string({}, [
       rules.confirmed('password_confirmation')
