@@ -6,6 +6,12 @@ import PeliculaValidator from 'App/Validators/PeliculaValidator';
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
 import PeliculaIdioma from 'App/Models/PeliculaIdioma';
 import PeliculaProductora from 'App/Models/PeliculaProductora';
+import { Schema, model, connect } from 'mongoose';
+
+interface InPelicula {
+  _id: number;
+  comentarios: Array<Object>;
+}
 
 export default class PeliculasController {
   public async index({response}: HttpContextContract) {
@@ -27,6 +33,16 @@ export default class PeliculasController {
     try {
       const payload = await request.validate({schema: validacion.schema});
       const p = await Pelicula.create(payload)
+
+      // await connect('mongodb+srv://mike:platinum@sandbox.tbdy0.mongodb.net/cine?retryWrites=true&w=majority');
+      await connect('mongodb://localhost:27017/cine');
+      const peliSchema = new Schema<InPelicula>({
+        _id: { type: Number, required: true },
+        comentarios: [{usuario_id:Number,comentario:String}],
+      });
+      const PeliculaModel = model<InPelicula>('pelicula', peliSchema);
+      const doc = new PeliculaModel({  _id: p.id  });
+      await doc.save();
 
       const pelicula = await Pelicula.query().
       preload('categoria').preload('clasificacion').

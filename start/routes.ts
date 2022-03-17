@@ -23,25 +23,8 @@ import Route from '@ioc:Adonis/Core/Route'
 Route.get('/', async () => {
   return { hello: 'world' }
 })
-
-// Route.resource('/personas', 'PersonasController').apiOnly()
-/*
-Route.resource('/usuarios', 'UsuariosController').apiOnly()
-Route.resource('/categorias', 'CategoriasController').apiOnly()
-Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
-Route.resource('/idiomas', 'IdiomasController').apiOnly()
-Route.resource('/peliculas', 'PeliculasController').apiOnly()
-Route.post('/peliculas/:id/agregar_actor', 'PeliculasController.agregarActor')
-Route.post('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
-Route.resource('/productoras', 'ProductorasController').apiOnly()
-Route.resource('/actores', 'ActoresController').apiOnly()
-Route.post('/status', 'UsuariosController.statusCuenta')
-*/
 Route.post('/login', 'UsuariosController.login')
-
 Route.post('/usuarios', 'UsuariosController.store')
-
-
 Route.get('dashboard', async ({ auth, response }) => {
   try {
     const sesion = await auth.use('api').authenticate()
@@ -50,16 +33,10 @@ Route.get('dashboard', async ({ auth, response }) => {
     console.log(E_INVALID_AUTH_SESSION)
     response.badRequest({error: E_INVALID_AUTH_SESSION})
   }
-
-// })
 })
-
-//Route.post('/logout', 'UsuariosController.logout')
-
 Route.group(()=>{
 
-Route.get('/logout', 'UsuariosController.logout')
-  // Route.resource('/usuarios', 'UsuariosController').apiOnly()
+  Route.get('/logout', 'UsuariosController.logout')
   Route.get('/usuarios', 'UsuariosController.index')
   Route.get('/usuarios/:id', 'UsuariosController.show')
   Route.put('/usuarios/:id', 'UsuariosController.update')
@@ -84,7 +61,4 @@ Route.get('/logout', 'UsuariosController.logout')
 
 Route.post('/status', 'UsuariosController.statusCuenta')
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
-
-// Route.get('inicia_sesion', async () => {
-//   return {hello:'conectateeee'}
-// })
+Route.post('/prueba', 'ComentariosController.mongo')
