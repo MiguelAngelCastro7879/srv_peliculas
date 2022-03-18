@@ -61,4 +61,6 @@ Route.group(()=>{
 
 Route.post('/status', 'UsuariosController.statusCuenta')
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
-Route.post('/prueba', 'ComentariosController.mongo')
+Route.post('/prueba/:id', 'ComentariosController.store')
+Route.get('/prueba', 'ComentariosController.index')
+Route.post('/prueba', 'ComentariosController.destroy')
