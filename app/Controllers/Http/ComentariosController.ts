@@ -1,6 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import mongoose from 'mongoose';
-import { Schema, model, connect } from 'mongoose';
+import { connect } from 'mongoose';
 import Pelicula from 'App/Models/Pelicula';
 import PeliculaModelo from 'App/Models/PeliculaModel';
 
@@ -31,7 +31,7 @@ export default class ComentariosController {
     }
   }
 
-  public async index({response}: HttpContextContract) {
+  public async index() {
     try {
       await connect('mongodb+srv://mike:platinum@sandbox.tbdy0.mongodb.net/cine?retryWrites=true&w=majority');
       const doc = PeliculaModelo.PeliculaModel.find()
@@ -41,7 +41,7 @@ export default class ComentariosController {
     }
   }
 
-  public async destroy({request,response}: HttpContextContract) {
+  public async destroy({request}: HttpContextContract) {
     try {
       await connect('mongodb+srv://mike:platinum@sandbox.tbdy0.mongodb.net/cine?retryWrites=true&w=majority');
       // db.peliculas.updateOne({_id:4},{$pull:{comentarios:{_id:ObjectId("6233e8250418c8c14bb18953")}}})
