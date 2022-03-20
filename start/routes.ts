@@ -18,22 +18,24 @@
 |
 */
 
+// Route.get('dashboard', async ({ auth, response }) => {
+//   try {
+//     const sesion = await auth.use('api').authenticate()
+//     response.status(200).send({ususario:sesion})
+//   } catch (E_INVALID_AUTH_SESSION) {
+//     console.log(E_INVALID_AUTH_SESSION)
+//     response.badRequest({error: E_INVALID_AUTH_SESSION})
+//   }
+// })
+// Route.get('/', async () => {
+//   return { hello: 'world' }
+// })
+
+
 import Route from '@ioc:Adonis/Core/Route'
 
-Route.get('/', async () => {
-  return { hello: 'world' }
-})
 Route.post('/login', 'UsuariosController.login')
 Route.post('/usuarios', 'UsuariosController.store')
-Route.get('dashboard', async ({ auth, response }) => {
-  try {
-    const sesion = await auth.use('api').authenticate()
-    response.status(200).send({ususario:sesion})
-  } catch (E_INVALID_AUTH_SESSION) {
-    console.log(E_INVALID_AUTH_SESSION)
-    response.badRequest({error: E_INVALID_AUTH_SESSION})
-  }
-})
 Route.group(()=>{
 
   Route.get('/logout', 'UsuariosController.logout')
@@ -52,6 +54,11 @@ Route.group(()=>{
   Route.post('/peliculas/:id/agregar_papel', 'PeliculasController.agregarPapel')
   Route.post('/peliculas/:id/agregar_idioma', 'PeliculasController.agregarIdioma')
   Route.post('/peliculas/:id/agregar_productora', 'PeliculasController.agregarProductora')
+
+  //comentarios
+  Route.post('/peliculas/:id/comentar', 'ComentariosController.store')
+  Route.post('/peliculas/:id/eliminar_comentario', 'ComentariosController.destroy')
+  
   Route.delete('/eliminar_papel/:id', 'PeliculasController.eliminarPapel')
   Route.delete('/eliminar_idioma/:id', 'PeliculasController.eliminarIdioma')
   Route.delete('/eliminar_productora/:id', 'PeliculasController.eliminarProductora')
@@ -61,6 +68,4 @@ Route.group(()=>{
 
 Route.post('/status', 'UsuariosController.statusCuenta')
 Route.get('/verificar_token', 'UsuariosController.verificarToken')
-Route.post('/prueba/:id', 'ComentariosController.store')
-Route.get('/prueba', 'ComentariosController.index')
-Route.post('/prueba2/:id', 'ComentariosController.destroy')
+// Route.get('/prueba', 'ComentariosController.index')

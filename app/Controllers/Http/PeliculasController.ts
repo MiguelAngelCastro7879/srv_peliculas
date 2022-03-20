@@ -8,6 +8,7 @@ import PeliculaIdioma from 'App/Models/PeliculaIdioma';
 import PeliculaProductora from 'App/Models/PeliculaProductora';
 import { Schema, model, connect } from 'mongoose';
 import PeliculaModelo from 'App/Models/PeliculaModel';
+import ComentariosController from './ComentariosController';
 
 export default class PeliculasController {
   public async index({response}: HttpContextContract) {
@@ -54,7 +55,7 @@ export default class PeliculasController {
     }
   }
 
-  public async show({response, request}: HttpContextContract) {
+  public async show({response, request}: HttpContextContract, ctx : HttpContextContract ) {
     try {
       const pelicula = await Pelicula.query().
       preload('categoria').preload('clasificacion').
@@ -63,8 +64,10 @@ export default class PeliculasController {
           subquery.preload('persona')
         })
       }).preload('idioma').preload('productora').where('id',request.params().id).firstOrFail()
+      const comentarios = await new ComentariosController().show(request.params().id)
       return response.ok({
-        pelicula:pelicula
+        pelicula:pelicula,
+        comentarios:comentarios,
       })
     } catch (e) {
       switch(e.code){
