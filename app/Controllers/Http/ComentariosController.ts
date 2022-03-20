@@ -49,7 +49,7 @@ export default class ComentariosController {
       connect('mongodb+srv://mike:platinum@sandbox.tbdy0.mongodb.net/cine?retryWrites=true&w=majority');
       const existePeli =  Pelicula.find(id)
       if(await existePeli){
-        const existeDoc =  PeliculaModelo.PeliculaModel.findOne({id})
+        const existeDoc =  PeliculaModelo.PeliculaModel.findOne({_id: id})
         return existeDoc
       }else{
         // return response.badRequest({error: "No existe la pelicula"})
