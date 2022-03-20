@@ -16,6 +16,9 @@ export default class Pelicula extends BaseModel {
   public nombre: string
 
   @column()
+  public imagenes: string
+
+  @column()
   public descripcion: string
 
   @column()

@@ -334,4 +334,25 @@ export default class PeliculasController {
       }
     }
   }
+  public async cargarFoto({request, params, response}){
+    const avatar = request.file('avatar',{
+      types: ['image'], 
+      size: '2mb'
+    })
+
+    const nombreArchivo = params.id + "." + avatar.extname;
+    await avatar.move('./public/fotos',{
+      name: nombreArchivo,
+      overwrite: true
+    })
+
+    const directorio = await Pelicula.findOrFail(params.id);
+    directorio.imagenes = nombreArchivo;
+    await directorio.save();
+
+    return response.json({
+      res: true,
+      message: "Foto guardada correctamente"
+    })
+  }
 }
