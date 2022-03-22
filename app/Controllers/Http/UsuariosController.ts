@@ -208,4 +208,25 @@ export default class UsuariosController {
       return response.badRequest({error: 'Token Invalido'})
     }
   }
+  
+  public async cambiarRol({request, response}: HttpContextContract){
+    try {
+      const user = await Usuario.findOrFail(request.params().id)
+      if(user.rol == 'ADMIN'){
+        user.rol = 'USER'
+      }
+      if(user.rol == 'USER'){
+        user.rol = 'ADMIN'
+      }
+      user.save()
+      return response.ok({mensaje:'Rol actualizado correctamente'})
+    }catch (e) {
+      switch(e.code){
+        case 'E_ROW_NOT_FOUND':
+          return response.badRequest({error: "Usuario no encontrado"})
+        default:
+          return response.badRequest({error: e.code })
+      }
+    }
+  }
 }

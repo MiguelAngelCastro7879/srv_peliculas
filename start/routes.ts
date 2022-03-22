@@ -43,6 +43,7 @@ Route.group(()=>{
   Route.get('/usuarios/:id', 'UsuariosController.show')
   Route.put('/usuarios/:id', 'UsuariosController.update')
   Route.delete('/usuarios/:id', 'UsuariosController.destroy')
+  Route.get('/usuarios/:id/cambiar_rol', 'UsuariosController.cambiarRol')
 
   Route.resource('/categorias', 'CategoriasController').apiOnly()
   Route.resource('/clasificaciones', 'ClasificacionesController').apiOnly()
